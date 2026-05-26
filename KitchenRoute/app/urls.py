@@ -14,6 +14,7 @@ from .views import (
     StepUpdateView,
     StepDeleteView,
     RecipeDeleteView,
+    ChangeUserRoleView,
 )
 
 urlpatterns = [
@@ -54,5 +55,10 @@ urlpatterns = [
     "skill-management/recipes/<int:recipe_id>/delete/",
     RecipeDeleteView.as_view(),
     name="recipe_delete",
+),
+    path(
+    "users/<int:user_id>/change-role/<int:role>/",
+    ChangeUserRoleView.as_view(),
+    name="change_user_role",
 ),
 ]

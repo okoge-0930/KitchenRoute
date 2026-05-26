@@ -3,26 +3,31 @@
 <h2>教育者ホーム</h2>
 
 <p>
-    <a href="{% url 'skill_management' %}">
-        スキル管理へ
-    </a>
+    <a href="{% url 'skill_management' %}">スキル管理へ</a>
 </p>
 
 <h3>スタッフ一覧</h3>
 
 {% if trainee_summaries %}
-    <ul>
-        {% for summary in trainee_summaries %}
-            <li>
-                <strong>{{ summary.trainee.username }}</strong><br>
-                進捗率：{{ summary.progress_rate }}%<br>
+    {% for summary in trainee_summaries %}
+        <div style="border: 1px solid #999; padding: 10px; margin-bottom: 10px; width: 320px;">
+            <div>
+                <strong>{{ summary.trainee.username }}</strong>
 
-                <a href="{% url 'trainee_detail' summary.trainee.id %}">
-                    詳細を見る
+                <a href="{% url 'trainee_detail' summary.trainee.id %}" style="margin-left: 20px;">
+                    詳細
                 </a>
-            </li>
-        {% endfor %}
-    </ul>
+            </div>
+
+            <div style="margin-top: 8px;">
+                進捗率：{{ summary.progress_rate }}%
+
+                <div style="display: inline-block; width: 120px; height: 16px; border: 1px solid #999; margin-left: 10px; vertical-align: middle;">
+                    <div style="height: 100%; width: {{ summary.progress_rate }}%; background-color: #f2c94c;"></div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
 {% else %}
     <p>表示できる新人がいません。</p>
 {% endif %}

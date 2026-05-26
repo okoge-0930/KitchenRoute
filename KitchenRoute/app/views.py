@@ -34,6 +34,7 @@ class EducatorHomeView(TemplateView):
         )
 
         trainee_summaries = []
+
         total_steps = Step.objects.count()
 
         for trainee in trainees:
@@ -44,7 +45,9 @@ class EducatorHomeView(TemplateView):
             if total_steps == 0:
                 progress_rate = 0
             else:
-                progress_rate = round(completed_count / total_steps * 100)
+                progress_rate = round(
+                    completed_count / total_steps * 100
+                )
 
             trainee_summaries.append(
                 {
@@ -81,6 +84,39 @@ class TraineeHomeView(TemplateView):
 
 class AdminHomeView(TemplateView):
     template_name = "app/admin_home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        users = User.objects.filter(
+            organization=self.request.user.organization
+        ).exclude(
+            id=self.request.user.id
+        ).order_by("role", "id")
+
+        user_summaries = []
+        total_steps = Step.objects.count()
+
+        for user in users:
+            completed_count = Progress.objects.filter(
+                trainee=user
+            ).count()
+
+            if total_steps == 0:
+                progress_rate = 0
+            else:
+                progress_rate = round(completed_count / total_steps * 100)
+
+            user_summaries.append(
+                {
+                    "user": user,
+                    "progress_rate": progress_rate,
+                }
+            )
+
+        context["user_summaries"] = user_summaries
+
+        return context
 
 
 class TraineeDetailView(TemplateView):
@@ -274,3 +310,14 @@ class RecipeDeleteView(TemplateView):
         recipe.delete()
 
         return redirect("skill_management")
+    
+    
+class ChangeUserRoleView(TemplateView):
+
+    def post(self, request, user_id, role):
+        user = User.objects.get(id=user_id)
+
+        user.role = role
+        user.save()
+
+        return redirect("admin_home")
