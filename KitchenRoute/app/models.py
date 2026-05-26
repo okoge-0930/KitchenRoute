@@ -4,22 +4,21 @@ from django.conf import settings
 
 
 class Organization(models.Model):
-    """店舗・学校・会社など、ユーザーが所属する組織を表します。"""
 
-    # 組織名です。例: 「Aベーカリー」「KitchenRoute製菓学校」
     name = models.CharField(max_length=100, unique=True)
 
-    # 組織データを作成した日時です。自動で現在日時が保存されます。
-    created_at = models.DateTimeField(auto_now_add=True)
+    organization_code = models.CharField(
+        max_length=20,
+        unique=True
+    )
 
-    class Meta:
-        # データベース上のテーブル名を指定します。
-        db_table = "organizations"
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
 
-    def __str__(self):
-        # 管理画面などで表示される名前です。
-        return self.name
-
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
 
 class User(AbstractUser):
     """ログインするユーザーを表します。新人・教育者・管理者をroleで分けます。"""

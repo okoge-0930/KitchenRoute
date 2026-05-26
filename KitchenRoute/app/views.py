@@ -1,6 +1,7 @@
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.shortcuts import redirect
 from django.views.generic import TemplateView
+from .models import Progress, Step
 
 
 class LoginView(DjangoLoginView):
@@ -27,6 +28,23 @@ class EducatorHomeView(TemplateView):
 
 class TraineeHomeView(TemplateView):
     template_name = "app/trainee_home.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        user = self.request.user
+
+        completed_step_ids = Progress.objects.filter(
+            trainee=user
+        ).values_list("step_id", flat=True)
+
+        next_step = Step.objects.exclude(
+            id__in=completed_step_ids
+        ).order_by("order").first()
+
+        context["next_step"] = next_step
+
+        return context
 
 
 class AdminHomeView(TemplateView):
