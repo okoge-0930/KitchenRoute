@@ -1,0 +1,24 @@
+<h1>KitchenRoute</h1>
+
+<h2>{{ user.username }}さんのタスク</h2>
+
+<p>{{ recipe.name }} の進捗　{{ progress_rate }}%</p>
+
+{% if steps %}
+    {% for step in steps %}
+        <p>
+            No.{{ step.order }}
+            {{ step.name }}
+
+            {% if step.id in completed_step_ids %}
+                合格
+            {% else %}
+                未
+            {% endif %}
+        </p>
+    {% endfor %}
+{% else %}
+    <p>登録された工程はありません。</p>
+{% endif %}
+
+<a href="{% url 'trainee_home' %}">新人ホームへ戻る</a>

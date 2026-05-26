@@ -2,6 +2,8 @@ from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView
 from .models import Progress, Recipe, Step, User
+from django.utils import timezone
+from datetime import timedelta
 
 
 class LoginView(DjangoLoginView):
@@ -67,17 +69,49 @@ class TraineeHomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        user = self.request.user
+        trainee = self.request.user
+        recipes = Recipe.objects.all()
 
-        completed_step_ids = Progress.objects.filter(
-            trainee=user
-        ).values_list("step_id", flat=True)
+        task_list = []
 
-        next_step = Step.objects.exclude(
-            id__in=completed_step_ids
-        ).order_by("order").first()
+        for recipe in recipes:
+            steps = recipe.steps.order_by("order")
 
-        context["next_step"] = next_step
+            next_step = None
+
+            for step in steps:
+                completed = Progress.objects.filter(
+                    trainee=trainee,
+                    step=step
+                ).exists()
+
+                if not completed:
+                    next_step = step
+                    break
+
+            if next_step:
+                completed_count = Progress.objects.filter(
+                    trainee=trainee,
+                    step__recipe=recipe
+                ).count()
+
+                total_count = steps.count()
+
+                progress_rate = (
+                    round(completed_count / total_count * 100)
+                    if total_count > 0
+                    else 0
+                )
+
+                task_list.append({
+                    "recipe": recipe,
+                    "step": next_step,
+                    "progress_rate": progress_rate,
+                })
+
+        task_list.sort(key=lambda x: x["progress_rate"])
+
+        context["task_list"] = task_list[:5]
 
         return context
 
@@ -321,3 +355,110 @@ class ChangeUserRoleView(TemplateView):
         user.save()
 
         return redirect("admin_home")
+    
+    
+class TraineeTaskDetailView(TemplateView):
+    template_name = "app/trainee_task_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        trainee = self.request.user
+
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.kwargs["recipe_id"],
+            organization=trainee.organization,
+        )
+
+        steps = Step.objects.filter(
+            recipe=recipe
+        ).order_by("order")
+
+        completed_step_ids = Progress.objects.filter(
+            trainee=trainee,
+            step__recipe=recipe,
+        ).values_list("step_id", flat=True)
+
+        total_count = steps.count()
+        completed_count = len(completed_step_ids)
+
+        progress_rate = (
+            round(completed_count / total_count * 100)
+            if total_count > 0
+            else 0
+        )
+
+        context["recipe"] = recipe
+        context["steps"] = steps
+        context["completed_step_ids"] = completed_step_ids
+        context["progress_rate"] = progress_rate
+
+        return context
+    
+    
+class MyProgressView(TemplateView):
+    template_name = "app/my_progress.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        trainee = self.request.user
+        recipes = Recipe.objects.filter(
+            organization=trainee.organization
+        ).order_by("id")
+
+        total_steps = Step.objects.filter(
+            recipe__organization=trainee.organization
+        ).count()
+
+        completed_steps = Progress.objects.filter(
+            trainee=trainee,
+            step__recipe__organization=trainee.organization,
+        )
+
+        completed_count = completed_steps.count()
+
+        overall_progress_rate = (
+            round(completed_count / total_steps * 100)
+            if total_steps > 0
+            else 0
+        )
+
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+
+        recent_progresses = completed_steps.filter(
+            passed_at__gte=thirty_days_ago
+        ).order_by("-passed_at")
+
+        recipe_progresses = []
+
+        for recipe in recipes:
+            steps = Step.objects.filter(recipe=recipe).order_by("order")
+
+            recipe_total_count = steps.count()
+            recipe_completed_count = completed_steps.filter(
+                step__recipe=recipe
+            ).count()
+
+            recipe_progress_rate = (
+                round(recipe_completed_count / recipe_total_count * 100)
+                if recipe_total_count > 0
+                else 0
+            )
+
+            recipe_progresses.append(
+                {
+                    "recipe": recipe,
+                    "progress_rate": recipe_progress_rate,
+                    "steps": steps,
+                }
+            )
+
+        recipe_progresses.sort(key=lambda x: x["progress_rate"])
+
+        context["overall_progress_rate"] = overall_progress_rate
+        context["recent_progresses"] = recent_progresses
+        context["recipe_progresses"] = recipe_progresses
+
+        return context

@@ -1,10 +1,29 @@
 <h1>KitchenRoute</h1>
 
-<h2>新人ホーム</h2>
+<h2>{{ user.username }}さんのタスク</h2>
+    <p>
+        <a href="{% url 'my_progress' %}">マイ進捗へ</a>
+    </p>
 
-{% if next_step %}
-    <h3>次に習得する工程</h3>
-    <p>{{ next_step }}</p>
+{% if task_list %}
+    {% for task in task_list %}
+        <div style="border: 1px solid #999; padding: 10px; margin-bottom: 10px; width: 320px;">
+
+            <p>
+                ■ {{ task.recipe.name }}
+
+                    <a href="{% url 'trainee_task_detail' task.recipe.id %}" style="margin-left: 20px;">
+                        詳細
+                    </a>
+            </p>
+
+            <p>
+                No.{{ task.step.order }}
+                {{ task.step.name }}
+            </p>
+
+        </div>
+    {% endfor %}
 {% else %}
-    <p>すべての工程を習得済みです。</p>
+    <p>現在進行中のタスクはありません。</p>
 {% endif %}

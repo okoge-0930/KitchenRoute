@@ -15,6 +15,8 @@ from .views import (
     StepDeleteView,
     RecipeDeleteView,
     ChangeUserRoleView,
+    TraineeTaskDetailView,
+    MyProgressView,
 )
 
 urlpatterns = [
@@ -61,4 +63,10 @@ urlpatterns = [
     ChangeUserRoleView.as_view(),
     name="change_user_role",
 ),
+    path(
+    "trainee/tasks/<int:recipe_id>/",
+    TraineeTaskDetailView.as_view(),
+    name="trainee_task_detail",
+),
+    path("my-progress/", MyProgressView.as_view(), name="my_progress"),
 ]

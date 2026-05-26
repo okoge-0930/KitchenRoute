@@ -1,0 +1,45 @@
+<h1>KitchenRoute</h1>
+
+<h2>{{ user.username }}さんの進捗</h2>
+
+<p>全体進捗　{{ overall_progress_rate }}%</p>
+
+<h3>直近30日の成長</h3>
+
+{% if recent_progresses %}
+    {% for progress in recent_progresses %}
+        <p>
+            {{ progress.step.recipe.name }}
+            No.{{ progress.step.order }}
+            {{ progress.step.name }}
+        </p>
+    {% endfor %}
+{% else %}
+    <p>直近30日以内に合格した工程はありません。</p>
+{% endif %}
+
+<h3>レシピごとの進捗</h3>
+
+{% if recipe_progresses %}
+    {% for item in recipe_progresses %}
+        <div style="border: 1px solid #999; padding: 8px; margin-bottom: 8px; width: 320px;">
+            <p>
+                {{ item.recipe.name }}
+                {{ item.progress_rate }}%
+            </p>
+
+            {% for step in item.steps %}
+                <p>
+                    No.{{ step.order }}
+                    {{ step.name }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>表示できるレシピがありません。</p>
+{% endif %}
+
+<p>
+    <a href="{% url 'trainee_home' %}">新人ホームへ戻る</a>
+</p>
