@@ -1,7 +1,7 @@
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.shortcuts import redirect, get_object_or_404
 from django.views.generic import TemplateView
-from .models import Progress, Step, User
+from .models import Progress, Recipe, Step, User
 
 
 class LoginView(DjangoLoginView):
@@ -122,3 +122,155 @@ class MarkStepPassedView(TemplateView):
 
 class HomeView(TemplateView):
     template_name = "app/home.html"
+    
+    
+class SkillManagementView(TemplateView):
+    template_name = "app/skill_management.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        recipes = Recipe.objects.filter(
+            organization=self.request.user.organization
+        ).order_by("id")
+
+        context["recipes"] = recipes
+
+        return context
+    
+    
+class StepManagementView(TemplateView):
+    template_name = "app/step_management.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.kwargs["recipe_id"],
+            organization=self.request.user.organization,
+        )
+
+        steps = Step.objects.filter(
+            recipe=recipe
+        ).order_by("order")
+
+        context["recipe"] = recipe
+        context["steps"] = steps
+
+        return context
+    
+
+class RecipeCreateView(TemplateView):
+    template_name = "app/recipe_create.html"
+
+    def post(self, request, *args, **kwargs):
+        recipe_name = request.POST.get("name")
+
+        if recipe_name:
+            Recipe.objects.create(
+                organization=request.user.organization,
+                name=recipe_name,
+            )
+
+        return redirect("skill_management")
+    
+    
+class StepCreateView(TemplateView):
+    template_name = "app/step_create.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.kwargs["recipe_id"],
+            organization=self.request.user.organization,
+        )
+
+        context["recipe"] = recipe
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.kwargs["recipe_id"],
+            organization=request.user.organization,
+        )
+
+        step_name = request.POST.get("name")
+        step_order = request.POST.get("order")
+
+        if step_name and step_order:
+            Step.objects.create(
+                recipe=recipe,
+                name=step_name,
+                order=step_order,
+            )
+
+        return redirect("step_management", recipe_id=recipe.id)
+    
+    
+class StepUpdateView(TemplateView):
+    template_name = "app/step_update.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        step = get_object_or_404(
+            Step,
+            id=self.kwargs["step_id"],
+            recipe__organization=self.request.user.organization,
+        )
+
+        context["step"] = step
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        step = get_object_or_404(
+            Step,
+            id=self.kwargs["step_id"],
+            recipe__organization=request.user.organization,
+        )
+
+        step_order = request.POST.get("order")
+        step_name = request.POST.get("name")
+
+        if step_order and step_name:
+            step.order = step_order
+            step.name = step_name
+            step.save()
+
+        return redirect("step_management", recipe_id=step.recipe.id)
+    
+    
+class StepDeleteView(TemplateView):
+    def post(self, request, *args, **kwargs):
+        step = get_object_or_404(
+            Step,
+            id=self.kwargs["step_id"],
+            recipe__organization=request.user.organization,
+        )
+
+        recipe_id = step.recipe.id
+        step.delete()
+
+        return redirect(
+            "step_management",
+            recipe_id=recipe_id,
+        )
+        
+        
+class RecipeDeleteView(TemplateView):
+    def post(self, request, *args, **kwargs):
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.kwargs["recipe_id"],
+            organization=request.user.organization,
+        )
+
+        recipe.delete()
+
+        return redirect("skill_management")

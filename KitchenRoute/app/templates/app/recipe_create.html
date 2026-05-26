@@ -1,0 +1,18 @@
+<h1>KitchenRoute</h1>
+
+<h2>レシピ登録</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>レシピ名</label><br>
+    <input type="text" name="name">
+
+    <br><br>
+
+    <button type="submit">登録</button>
+</form>
+
+<br>
+
+<a href="{% url 'skill_management' %}">キャンセル</a>

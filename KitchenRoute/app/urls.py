@@ -7,6 +7,13 @@ from .views import (
     AdminHomeView,
     TraineeDetailView,
     MarkStepPassedView,
+    SkillManagementView,
+    StepManagementView,
+    RecipeCreateView,
+    StepCreateView,
+    StepUpdateView,
+    StepDeleteView,
+    RecipeDeleteView,
 )
 
 urlpatterns = [
@@ -21,4 +28,31 @@ urlpatterns = [
     MarkStepPassedView.as_view(),
     name="mark_step_passed",
     ),
+    path("skill-management/", SkillManagementView.as_view(), name="skill_management"),
+    path(
+    "skill-management/recipes/<int:recipe_id>/",
+    StepManagementView.as_view(),
+    name="step_management",
+),
+    path("skill-management/recipes/create/", RecipeCreateView.as_view(), name="recipe_create"),
+    path(
+    "skill-management/recipes/<int:recipe_id>/steps/create/",
+    StepCreateView.as_view(),
+    name="step_create",
+),
+    path(
+    "skill-management/steps/<int:step_id>/edit/",
+    StepUpdateView.as_view(),
+    name="step_update",
+),
+    path(
+    "skill-management/steps/<int:step_id>/delete/",
+    StepDeleteView.as_view(),
+    name="step_delete",
+),
+    path(
+    "skill-management/recipes/<int:recipe_id>/delete/",
+    RecipeDeleteView.as_view(),
+    name="recipe_delete",
+),
 ]

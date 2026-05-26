@@ -1,0 +1,41 @@
+<h1>KitchenRoute</h1>
+
+<p>
+    <a href="{% url 'skill_management' %}">＜戻る</a>
+</p>
+
+<h2>スキル管理</h2>
+<h3>工程一覧</h3>
+
+<p>レシピ名：{{ recipe.name }}</p>
+
+{% if steps %}
+    <ul>
+        {% for step in steps %}
+            <li>
+                No.{{ step.order }} {{ step.name }}
+                <a href="{% url 'step_update' step.id %}">
+                    編集
+                </a>
+                <form
+                    method="post"
+                    action="{% url 'step_delete' step.id %}"
+                    style="display: inline;"
+                >
+                     {% csrf_token %}
+                    <button type="submit">
+                         削除
+                     </button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>登録された工程はありません。</p>
+{% endif %}
+
+<hr>
+
+<a href="{% url 'step_create' recipe.id %}">
+    工程を追加
+</a>

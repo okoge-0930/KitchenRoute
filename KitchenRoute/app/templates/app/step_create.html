@@ -1,0 +1,25 @@
+<h1>KitchenRoute</h1>
+
+<h2>工程登録</h2>
+
+<p>レシピ名：{{ recipe.name }}</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>順序</label><br>
+    <input type="number" name="order">
+
+    <br><br>
+
+    <label>工程名</label><br>
+    <input type="text" name="name">
+
+    <br><br>
+
+    <button type="submit">登録</button>
+</form>
+
+<br>
+
+<a href="{% url 'step_management' recipe.id %}">キャンセル</a>
