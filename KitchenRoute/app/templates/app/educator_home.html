@@ -1,9 +1,22 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><title>教育者ホーム</title></head>
-<body>
-    <h1>KitchenRoute</h1>
-    <h2>教育者ホーム</h2>
-    <p>スタッフ一覧</p>
-</body>
-</html>
+<h1>KitchenRoute</h1>
+
+<h2>教育者ホーム</h2>
+
+<h3>スタッフ一覧</h3>
+
+{% if trainee_summaries %}
+    <ul>
+        {% for summary in trainee_summaries %}
+            <li>
+                <strong>{{ summary.trainee.username }}</strong><br>
+                進捗率：{{ summary.progress_rate }}%<br>
+
+                <a href="{% url 'trainee_detail' summary.trainee.id %}">
+                    詳細を見る
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>表示できる新人がいません。</p>
+{% endif %}

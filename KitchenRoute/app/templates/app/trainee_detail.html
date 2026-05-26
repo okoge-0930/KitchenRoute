@@ -1,0 +1,28 @@
+<h1>KitchenRoute</h1>
+
+<h2>{{ trainee.username }} さんの進捗</h2>
+
+<ul>
+    {% for step in steps %}
+        <li>
+            {{ step }}
+
+            {% if step.id in completed_step_ids %}
+                合格済み
+            {% else %}
+                未合格
+
+                <form
+                    method="post"
+                    action="{% url 'mark_step_passed' trainee.id step.id %}"
+                    style="display: inline;"
+                >
+                    {% csrf_token %}
+                    <button type="submit">合格にする</button>
+                </form>
+            {% endif %}
+        </li>
+    {% endfor %}
+</ul>
+
+<a href="{% url 'educator_home' %}">教育者ホームへ戻る</a>
