@@ -1,0 +1,87 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
+<div style="max-width: 380px; margin: 40px auto;">
+
+    <h1>KitchenRoute</h1>
+
+    <div style="
+        border: 1px solid #ccc;
+        padding: 24px;
+        border-radius: 8px;
+    ">
+
+        <h2 style="text-align: center;">
+            アカウント情報
+        </h2>
+
+        <br>
+
+        {% if user.organization %}
+            <p>
+                所属組織名：
+                {{ user.organization.name }}
+            </p>
+        {% endif %}
+
+        {% if user.role == 2 and user.organization %}
+            <p>
+                組織コード：
+                {{ user.organization.organization_code }}
+            </p>
+        {% endif %}
+
+        <br>
+
+        <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        ">
+            <div>
+                <div>名前</div>
+                <strong>{{ user.username }}</strong>
+            </div>
+
+            <button disabled>
+                変更する
+            </button>
+        </div>
+
+        <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        ">
+            <div>
+                <div>メールアドレス</div>
+                <strong>{{ user.email }}</strong>
+            </div>
+
+            <button disabled>
+                変更する
+            </button>
+        </div>
+
+        <div style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        ">
+            <div>
+                <div>現在のパスワード</div>
+                <strong>••••••••</strong>
+            </div>
+
+            <button disabled>
+                変更する
+            </button>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

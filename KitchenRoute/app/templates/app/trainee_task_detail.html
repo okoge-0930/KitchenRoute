@@ -1,24 +1,29 @@
-<h1>KitchenRoute</h1>
+{% extends "app/base.html" %}
 
-<h2>{{ user.username }}さんのタスク</h2>
+{% block content %}
 
-<p>{{ recipe.name }} の進捗　{{ progress_rate }}%</p>
+    <h1>KitchenRoute</h1>
 
-{% if steps %}
-    {% for step in steps %}
-        <p>
-            No.{{ step.order }}
-            {{ step.name }}
+    <h2>{{ user.username }}さんのタスク</h2>
 
-            {% if step.id in completed_step_ids %}
-                合格
-            {% else %}
-                未
-            {% endif %}
-        </p>
-    {% endfor %}
-{% else %}
-    <p>登録された工程はありません。</p>
-{% endif %}
+    <p>{{ recipe.name }} の進捗　{{ progress_rate }}%</p>
 
-<a href="{% url 'trainee_home' %}">新人ホームへ戻る</a>
+    {% if steps %}
+        {% for step in steps %}
+            <p>
+                No.{{ step.order }}
+                {{ step.name }}
+
+                {% if step.id in completed_step_ids %}
+                    合格
+                {% else %}
+                    未
+                {% endif %}
+            </p>
+        {% endfor %}
+    {% else %}
+        <p>登録された工程はありません。</p>
+    {% endif %}
+
+
+{% endblock %}

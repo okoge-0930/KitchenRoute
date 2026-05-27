@@ -1,30 +1,20 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
 <h1>KitchenRoute</h1>
 
 <h2>スキル管理</h2>
 <h3>レシピ一覧</h3>
 
 {% if recipes %}
-    <ul>
-        {% for recipe in recipes %}
-            <li>
-                <a href="{% url 'step_management' recipe.id %}">
-                    {{ recipe.name }}
-                </a>
-
-                <form
-                    method="post"
-                    action="{% url 'recipe_delete' recipe.id %}"
-                    style="display: inline;"
-                >
-                    {% csrf_token %}
-
-                    <button type="submit">
-                        削除
-                    </button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+    {% for recipe in recipes %}
+        <p>
+            <a href="{% url 'step_management' recipe.id %}">
+                &gt;{{ recipe.name }}
+            </a>
+        </p>
+    {% endfor %}
 {% else %}
     <p>登録されたレシピはありません。</p>
 {% endif %}
@@ -35,6 +25,5 @@
     レシピを追加
 </a>
 
-<p>
-    <a href="{% url 'educator_home' %}">教育者ホームへ戻る</a>
-</p>
+
+{% endblock %}

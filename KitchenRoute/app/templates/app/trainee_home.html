@@ -1,29 +1,32 @@
-<h1>KitchenRoute</h1>
+{% extends "app/base.html" %}
 
-<h2>{{ user.username }}さんのタスク</h2>
-    <p>
-        <a href="{% url 'my_progress' %}">マイ進捗へ</a>
-    </p>
+{% block content %}
 
-{% if task_list %}
-    {% for task in task_list %}
-        <div style="border: 1px solid #999; padding: 10px; margin-bottom: 10px; width: 320px;">
+    <h1>KitchenRoute</h1>
 
-            <p>
-                ■ {{ task.recipe.name }}
+    <h2>{{ user.username }}さんのタスク</h2>
 
-                    <a href="{% url 'trainee_task_detail' task.recipe.id %}" style="margin-left: 20px;">
-                        詳細
-                    </a>
-            </p>
+    {% if task_list %}
+        {% for task in task_list %}
+            <div style="border: 1px solid #999; padding: 10px; margin-bottom: 10px; width: 320px;">
 
-            <p>
-                No.{{ task.step.order }}
-                {{ task.step.name }}
-            </p>
+                <p>
+                 ■ {{ task.recipe.name }}
 
-        </div>
-    {% endfor %}
-{% else %}
-    <p>現在進行中のタスクはありません。</p>
-{% endif %}
+                        <a href="{% url 'trainee_task_detail' task.recipe.id %}" style="margin-left: 20px;">
+                            詳細
+                        </a>
+                </p>
+
+                 <p>
+                     No.{{ task.step.order }}
+                    {{ task.step.name }}
+                </p>
+
+            </div>
+        {% endfor %}
+    {% else %}
+         <p>現在進行中のタスクはありません。</p>
+    {% endif %}
+
+{% endblock %}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>KitchenRoute</title>
+</head>
+<body>
+    <main style="padding-bottom: 70px;">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% if user.is_authenticated %}
+        <nav style="
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f2c94c;
+            border-top: 1px solid #999;
+            padding: 10px 0;
+            text-align: center;
+        ">
+            {% if user.role == 0 %}
+                <a href="{% url 'trainee_home' %}" style="margin: 0 12px;">ホーム</a>
+                <a href="{% url 'my_progress' %}" style="margin: 0 12px;">マイ進捗</a>
+                <a href="{% url 'account' %}" style="margin: 0 12px;">アカウント</a>
+                <a href="{% url 'logout' %}" style="margin: 0 12px;">ログアウト</a>
+            {% elif user.role == 1 %}
+                <a href="{% url 'educator_home' %}" style="margin: 0 12px;">ホーム</a>
+                <a href="{% url 'skill_management' %}" style="margin: 0 12px;">スキル管理</a>
+                <a href="{% url 'account' %}" style="margin: 0 12px;">アカウント</a>
+                <a href="{% url 'logout' %}" style="margin: 0 12px;">ログアウト</a>
+            {% elif user.role == 2 %}
+                <a href="{% url 'admin_home' %}" style="margin: 0 12px;">ホーム</a>
+                <a href="{% url 'skill_management' %}" style="margin: 0 12px;">スキル管理</a>
+                <a href="{% url 'account' %}" style="margin: 0 12px;">アカウント</a>
+                <a href="{% url 'logout' %}" style="margin: 0 12px;">ログアウト</a>
+            {% endif %}
+        </nav>
+    {% endif %}
+</body>
+</html>

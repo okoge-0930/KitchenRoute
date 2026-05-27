@@ -1,63 +1,81 @@
-<h1>KitchenRoute</h1>
+{% extends "app/base.html" %}
 
-<h2>管理者ホーム</h2>
+{% block content %}
 
-<p>
-    <a href="{% url 'skill_management' %}">スキル管理へ</a>
-</p>
+<div style="max-width: 420px; margin: 24px auto;">
 
-<h3>ユーザー一覧</h3>
+    <h1>KitchenRoute</h1>
 
-{% if user_summaries %}
-    {% for summary in user_summaries %}
-        <div style="border: 1px solid #999; padding: 10px; margin-bottom: 10px; width: 320px;">
-            <div>
-                {% if summary.user.role == 0 %}
-                    👤
-                {% elif summary.user.role == 1 %}
-                    🧑‍🏫
-                {% else %}
-                    👑
-                {% endif %}
+    <h2>管理者ホーム</h2>
 
-                <strong>{{ summary.user.username }}</strong>
+    <h3>ユーザー一覧</h3>
 
-                {% if summary.user.role == 0 %}
-                    <a href="{% url 'trainee_detail' summary.user.id %}" style="margin-left: 20px;">
-                        詳細を見る
-                    </a>
-                {% endif %}
-            </div>
+    {% if user_summaries %}
+        {% for summary in user_summaries %}
+            <div style="border: 1px solid #999; padding: 12px; margin-bottom: 12px;">
 
-            <div style="margin-top: 8px;">
-                進捗率：{{ summary.progress_rate }}%
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    {% if summary.user.role == 0 %}
+                        <strong>👤 {{ summary.user.username }}</strong>
 
-                <div style="display: inline-block; width: 120px; height: 16px; border: 1px solid #999; margin-left: 10px; vertical-align: middle;">
-                    <div style="height: 100%; width: {{ summary.progress_rate }}%; background-color: #f2c94c;"></div>
+                        <a href="{% url 'trainee_detail' summary.user.id %}">
+                            詳細
+                        </a>
+
+                    {% elif summary.user.role == 1 %}
+                        <strong>🧑‍🍳 {{ summary.user.username }}</strong>
+
+                    {% elif summary.user.role == 2 %}
+                        <strong>🧑‍🍳 {{ summary.user.username }}（管理者）</strong>
+                    {% endif %}
                 </div>
-            </div>
 
-            <div style="margin-top: 8px;">
                 {% if summary.user.role == 0 %}
-                <form method="post"
-                    action="{% url 'change_user_role' summary.user.id 1 %}">
-                    {% csrf_token %}
-                    <button type="submit">
-                        教育者に変更
-                    </button>
-                </form>
-                {% elif summary.user.role == 1 %}
-                <form method="post"
-                    action="{% url 'change_user_role' summary.user.id 0 %}">
-                    {% csrf_token %}
-                    <button type="submit">
-                        新人に戻す
-                    </button>
-                </form>
+                    <div style="margin-top: 8px;">
+                        進捗率：{{ summary.progress_rate }}%
+
+                        <div style="display: inline-block; width: 120px; height: 16px; border: 1px solid #999; margin-left: 10px; vertical-align: middle;">
+                            <div style="height: 100%; width: {{ summary.progress_rate }}%; background-color: #f2c94c;"></div>
+                        </div>
+                    </div>
                 {% endif %}
+
+                <div style="margin-top: 8px;">
+                    {% if summary.user.role == 0 %}
+                        <form
+                            method="post"
+                            action="{% url 'change_user_role' summary.user.id 1 %}"
+                        >
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                onclick="return confirm('{{ summary.user.username }}さんを教育者へ変更しますか？')"
+                            >
+                                教育者に変更
+                            </button>
+                        </form>
+                    {% elif summary.user.role == 1 %}
+                        <form
+                            method="post"
+                            action="{% url 'change_user_role' summary.user.id 0 %}"
+                        >
+                            {% csrf_token %}
+                            <button
+                                type="submit"
+                                onclick="return confirm('{{ summary.user.username }}さんを新人へ戻しますか？')"
+                            >
+                                新人に戻す
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
             </div>
-        </div>
-    {% endfor %}
-{% else %}
-    <p>表示できるユーザーがいません。</p>
-{% endif %}
+        {% endfor %}
+    {% else %}
+        <p>表示できるユーザーがいません。</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,9 +1,12 @@
 from django.contrib.auth.views import LoginView as DjangoLoginView
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView
 from .models import Progress, Recipe, Step, User
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.auth import logout
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
 
 
 class LoginView(DjangoLoginView):
@@ -24,24 +27,23 @@ class LoginView(DjangoLoginView):
         return "/"
     
 
-class EducatorHomeView(TemplateView):
+class EducatorHomeView(LoginRequiredMixin, TemplateView):
     template_name = "app/educator_home.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        trainees = User.objects.filter(
-            organization=self.request.user.organization,
-            role=0,
-        )
+        users = User.objects.filter(
+            organization=self.request.user.organization
+        ).order_by("-role", "id")
 
-        trainee_summaries = []
+        user_summaries = []
 
         total_steps = Step.objects.count()
 
-        for trainee in trainees:
+        for user in users:
             completed_count = Progress.objects.filter(
-                trainee=trainee
+                trainee=user
             ).count()
 
             if total_steps == 0:
@@ -51,19 +53,19 @@ class EducatorHomeView(TemplateView):
                     completed_count / total_steps * 100
                 )
 
-            trainee_summaries.append(
+            user_summaries.append(
                 {
-                    "trainee": trainee,
+                    "user": user,
                     "progress_rate": progress_rate,
                 }
             )
 
-        context["trainee_summaries"] = trainee_summaries
+        context["user_summaries"] = user_summaries
 
         return context
 
 
-class TraineeHomeView(TemplateView):
+class TraineeHomeView(LoginRequiredMixin, TemplateView):
     template_name = "app/trainee_home.html"
 
     def get_context_data(self, **kwargs):
@@ -116,17 +118,29 @@ class TraineeHomeView(TemplateView):
         return context
 
 
-class AdminHomeView(TemplateView):
+class AdminHomeView(LoginRequiredMixin, TemplateView):
     template_name = "app/admin_home.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         users = User.objects.filter(
-            organization=self.request.user.organization
-        ).exclude(
-            id=self.request.user.id
-        ).order_by("role", "id")
+    organization=self.request.user.organization
+        )
+
+        role_order = {
+            2: 0,  # 管理者
+            1: 1,  # 教育者
+            0: 2,  # 新人
+        }
+
+        users = sorted(
+            users,
+            key=lambda user: (
+                role_order.get(user.role, 99),
+                user.id,
+            )
+        )
 
         user_summaries = []
         total_steps = Step.objects.count()
@@ -153,23 +167,53 @@ class AdminHomeView(TemplateView):
         return context
 
 
-class TraineeDetailView(TemplateView):
+class TraineeDetailView(LoginRequiredMixin, TemplateView):
     template_name = "app/trainee_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        trainee = User.objects.get(id=self.kwargs["user_id"])
+        trainee = get_object_or_404(
+            User,
+            id=self.kwargs["user_id"],
+            organization=self.request.user.organization,
+        )
 
-        completed_step_ids = Progress.objects.filter(
-            trainee=trainee
-        ).values_list("step_id", flat=True)
+        recipes = Recipe.objects.filter(
+            organization=self.request.user.organization
+        ).order_by("id")
 
-        steps = Step.objects.all().order_by("order")
+        recipe_progresses = []
+
+        for recipe in recipes:
+            steps = Step.objects.filter(
+                recipe=recipe
+            ).order_by("order")
+
+            step_items = []
+
+            for step in steps:
+                is_completed = Progress.objects.filter(
+                    trainee=trainee,
+                    step=step,
+                ).exists()
+
+                step_items.append(
+                    {
+                        "step": step,
+                        "is_completed": is_completed,
+                    }
+                )
+
+            recipe_progresses.append(
+                {
+                    "recipe": recipe,
+                    "steps": step_items,
+                }
+            )
 
         context["trainee"] = trainee
-        context["steps"] = steps
-        context["completed_step_ids"] = completed_step_ids
+        context["recipe_progresses"] = recipe_progresses
 
         return context
     
@@ -194,7 +238,7 @@ class HomeView(TemplateView):
     template_name = "app/home.html"
     
     
-class SkillManagementView(TemplateView):
+class SkillManagementView(LoginRequiredMixin, TemplateView):
     template_name = "app/skill_management.html"
 
     def get_context_data(self, **kwargs):
@@ -209,7 +253,7 @@ class SkillManagementView(TemplateView):
         return context
     
     
-class StepManagementView(TemplateView):
+class StepManagementView(LoginRequiredMixin, TemplateView):
     template_name = "app/step_management.html"
 
     def get_context_data(self, **kwargs):
@@ -246,6 +290,31 @@ class RecipeCreateView(TemplateView):
         return redirect("skill_management")
     
     
+class RecipeUpdateView(LoginRequiredMixin, View):
+    def get(self, request, recipe_id):
+        recipe = get_object_or_404(
+            Recipe,
+            id=recipe_id
+        )
+
+        return render(
+            request,
+            "app/recipe_update.html",
+            {"recipe": recipe},
+        )
+
+    def post(self, request, recipe_id):
+        recipe = get_object_or_404(
+            Recipe,
+            id=recipe_id
+        )
+
+        recipe.name = request.POST.get("name")
+        recipe.save()
+
+        return redirect("skill_management")
+        
+
 class StepCreateView(TemplateView):
     template_name = "app/step_create.html"
 
@@ -357,7 +426,7 @@ class ChangeUserRoleView(TemplateView):
         return redirect("admin_home")
     
     
-class TraineeTaskDetailView(TemplateView):
+class TraineeTaskDetailView(LoginRequiredMixin, TemplateView):
     template_name = "app/trainee_task_detail.html"
 
     def get_context_data(self, **kwargs):
@@ -397,13 +466,14 @@ class TraineeTaskDetailView(TemplateView):
         return context
     
     
-class MyProgressView(TemplateView):
+class MyProgressView(LoginRequiredMixin, TemplateView):
     template_name = "app/my_progress.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         trainee = self.request.user
+
         recipes = Recipe.objects.filter(
             organization=trainee.organization
         ).order_by("id")
@@ -427,19 +497,40 @@ class MyProgressView(TemplateView):
 
         thirty_days_ago = timezone.now() - timedelta(days=30)
 
-        recent_progresses = completed_steps.filter(
-            passed_at__gte=thirty_days_ago
-        ).order_by("-passed_at")
+        recent_recipe_progresses = []
+
+        for recipe in recipes:
+            recent_progresses = completed_steps.filter(
+                step__recipe=recipe,
+                passed_at__gte=thirty_days_ago,
+            ).order_by("passed_at")
+
+            if recent_progresses.exists():
+                oldest_progress = recent_progresses.first()
+                latest_progress = recent_progresses.last()
+
+                recent_recipe_progresses.append(
+                    {
+                        "recipe": recipe,
+                        "oldest_progress": oldest_progress,
+                        "latest_progress": latest_progress,
+                    }
+                )
 
         recipe_progresses = []
 
         for recipe in recipes:
-            steps = Step.objects.filter(recipe=recipe).order_by("order")
+            steps = Step.objects.filter(
+                recipe=recipe
+            ).order_by("order")
 
             recipe_total_count = steps.count()
-            recipe_completed_count = completed_steps.filter(
+
+            recipe_completed_step_ids = completed_steps.filter(
                 step__recipe=recipe
-            ).count()
+            ).values_list("step_id", flat=True)
+
+            recipe_completed_count = len(recipe_completed_step_ids)
 
             recipe_progress_rate = (
                 round(recipe_completed_count / recipe_total_count * 100)
@@ -447,18 +538,40 @@ class MyProgressView(TemplateView):
                 else 0
             )
 
+            step_items = []
+
+            for step in steps:
+                is_completed = step.id in recipe_completed_step_ids
+
+                step_items.append(
+                    {
+                        "step": step,
+                        "is_completed": is_completed,
+                    }
+                )
+
             recipe_progresses.append(
                 {
                     "recipe": recipe,
                     "progress_rate": recipe_progress_rate,
-                    "steps": steps,
+                    "steps": step_items,
                 }
             )
 
         recipe_progresses.sort(key=lambda x: x["progress_rate"])
 
         context["overall_progress_rate"] = overall_progress_rate
-        context["recent_progresses"] = recent_progresses
+        context["recent_recipe_progresses"] = recent_recipe_progresses
         context["recipe_progresses"] = recipe_progresses
 
         return context
+    
+    
+class AccountView(LoginRequiredMixin, TemplateView):
+    template_name = "app/account.html"
+    
+    
+class LogoutRedirectView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return redirect("login")

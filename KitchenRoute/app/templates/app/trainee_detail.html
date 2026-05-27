@@ -1,28 +1,46 @@
-<h1>KitchenRoute</h1>
+{% extends "app/base.html" %}
 
-<h2>{{ trainee.username }} さんの進捗</h2>
+{% block content %}
 
-<ul>
-    {% for step in steps %}
-        <li>
-            {{ step }}
+<div style="max-width: 420px; margin: 24px auto;">
 
-            {% if step.id in completed_step_ids %}
-                合格済み
-            {% else %}
-                未合格
+    <h1>KitchenRoute</h1>
 
-                <form
-                    method="post"
-                    action="{% url 'mark_step_passed' trainee.id step.id %}"
-                    style="display: inline;"
-                >
-                    {% csrf_token %}
-                    <button type="submit">合格にする</button>
-                </form>
-            {% endif %}
-        </li>
+    <h2>{{ trainee.username }} さんの進捗</h2>
+
+    {% for recipe_item in recipe_progresses %}
+        <div style="border: 1px solid #999; padding: 12px; margin-bottom: 12px;">
+
+            <h3>{{ recipe_item.recipe.name }}</h3>
+
+           {% for step_item in recipe_item.steps %}
+                <div style="margin-bottom: 10px;">
+                    <span>
+                        No.{{ step_item.step.order }}
+                        {{ step_item.step.name }}
+
+                        {% if step_item.is_completed %}
+                            合格済み
+                        {% else %}
+                            未合格
+                        {% endif %}
+                    </span>
+
+                    {% if not step_item.is_completed %}
+                        <form
+                            method="post"
+                            action="{% url 'mark_step_passed' trainee.id step_item.step.id %}"
+                            style="display: inline; margin-left: 8px;"
+                        >
+                            {% csrf_token %}
+                            <button type="submit">合格にする</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
     {% endfor %}
-</ul>
 
-<a href="{% url 'educator_home' %}">教育者ホームへ戻る</a>
+</div>
+
+{% endblock %}

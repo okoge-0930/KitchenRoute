@@ -1,41 +1,77 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
 <h1>KitchenRoute</h1>
 
 <p>
-    <a href="{% url 'skill_management' %}">＜戻る</a>
+    <a href="{% url 'skill_management' %}">
+        ＜戻る
+    </a>
 </p>
 
 <h2>スキル管理</h2>
 <h3>工程一覧</h3>
 
-<p>レシピ名：{{ recipe.name }}</p>
+<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+    <strong>レシピ名　{{ recipe.name }}</strong>
+
+    <a href="{% url 'recipe_update' recipe.id %}">
+        編集
+    </a>
+
+    <form
+        method="post"
+        action="{% url 'recipe_delete' recipe.id %}"
+        style="display: inline; margin: 0;"
+    >
+        {% csrf_token %}
+        <button
+            type="submit"
+            onclick="return confirm('⚠️警告\nレシピ削除をすると登録された全工程も削除されます。\n本当に削除しますか？')"
+        >
+            削除
+        </button>
+    </form>
+</div>
 
 {% if steps %}
-    <ul>
-        {% for step in steps %}
-            <li>
-                No.{{ step.order }} {{ step.name }}
-                <a href="{% url 'step_update' step.id %}">
-                    編集
-                </a>
-                <form
-                    method="post"
-                    action="{% url 'step_delete' step.id %}"
-                    style="display: inline;"
-                >
-                     {% csrf_token %}
-                    <button type="submit">
-                         削除
-                     </button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+    {% for step in steps %}
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+    <span>
+        No.{{ step.order }}
+        {{ step.name }}
+    </span>
+
+    <a href="{% url 'step_update' step.id %}">
+        編集
+    </a>
+
+    <form
+        method="post"
+        action="{% url 'step_delete' step.id %}"
+        style="display: inline; margin: 0;"
+    >
+        {% csrf_token %}
+        <button
+            type="submit"
+            onclick="return confirm('⚠️警告\nこの操作は元に戻せません。\n工程を削除しますか？')"
+        >
+            削除
+        </button>
+    </form>
+</div>
+    {% endfor %}
 {% else %}
     <p>登録された工程はありません。</p>
 {% endif %}
 
 <hr>
 
-<a href="{% url 'step_create' recipe.id %}">
-    工程を追加
-</a>
+<p>
+    <a href="{% url 'step_create' recipe.id %}">
+        ＋工程を追加
+    </a>
+</p>
+
+{% endblock %}

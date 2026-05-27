@@ -1,33 +1,52 @@
-<h1>KitchenRoute</h1>
+{% extends "app/base.html" %}
 
-<h2>教育者ホーム</h2>
+{% block content %}
 
-<p>
-    <a href="{% url 'skill_management' %}">スキル管理へ</a>
-</p>
+<div style="max-width: 420px; margin: 24px auto;">
 
-<h3>スタッフ一覧</h3>
+    <h1>KitchenRoute</h1>
 
-{% if trainee_summaries %}
-    {% for summary in trainee_summaries %}
-        <div style="border: 1px solid #999; padding: 10px; margin-bottom: 10px; width: 320px;">
-            <div>
-                <strong>{{ summary.trainee.username }}</strong>
+    <h2>教育者ホーム</h2>
 
-                <a href="{% url 'trainee_detail' summary.trainee.id %}" style="margin-left: 20px;">
-                    詳細
-                </a>
-            </div>
+    <h3>ユーザー一覧</h3>
 
-            <div style="margin-top: 8px;">
-                進捗率：{{ summary.progress_rate }}%
+    {% if user_summaries %}
+        {% for summary in user_summaries %}
+            <div style="border: 1px solid #999; padding: 12px; margin-bottom: 12px;">
 
-                <div style="display: inline-block; width: 120px; height: 16px; border: 1px solid #999; margin-left: 10px; vertical-align: middle;">
-                    <div style="height: 100%; width: {{ summary.progress_rate }}%; background-color: #f2c94c;"></div>
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    {% if summary.user.role == 0 %}
+                        <strong>👤 {{ summary.user.username }}</strong>
+
+                        <a href="{% url 'trainee_detail' summary.user.id %}">
+                            詳細
+                        </a>
+
+                    {% elif summary.user.role == 1 %}
+                        <strong>🧑‍🍳 {{ summary.user.username }}</strong>
+
+                    {% elif summary.user.role == 2 %}
+                        <strong>🧑‍🍳 {{ summary.user.username }}（管理者）</strong>
+                    {% endif %}
                 </div>
+
+                {% if summary.user.role == 0 %}
+                    <div style="margin-top: 8px;">
+                        進捗率：{{ summary.progress_rate }}%
+
+                        <div style="display: inline-block; width: 120px; height: 16px; border: 1px solid #999; margin-left: 10px; vertical-align: middle;">
+                            <div style="height: 100%; width: {{ summary.progress_rate }}%; background-color: #f2c94c;"></div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                
             </div>
-        </div>
-    {% endfor %}
-{% else %}
-    <p>表示できる新人がいません。</p>
-{% endif %}
+        {% endfor %}
+    {% else %}
+        <p>表示できるユーザーがいません。</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -17,11 +17,15 @@ from .views import (
     ChangeUserRoleView,
     TraineeTaskDetailView,
     MyProgressView,
+    AccountView,
+    LogoutRedirectView,
+    RecipeUpdateView,
 )
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("login/", LoginView.as_view(), name="login"),
+    path("logout/", LogoutRedirectView.as_view(), name="logout"),
     path("educator-home/", EducatorHomeView.as_view(), name="educator_home"),
     path("trainee-home/", TraineeHomeView.as_view(), name="trainee_home"),
     path("admin-home/", AdminHomeView.as_view(), name="admin_home"),
@@ -54,6 +58,11 @@ urlpatterns = [
     name="step_delete",
 ),
     path(
+    "skill-management/recipes/<int:recipe_id>/edit/",
+    RecipeUpdateView.as_view(),
+    name="recipe_update",
+),
+    path(
     "skill-management/recipes/<int:recipe_id>/delete/",
     RecipeDeleteView.as_view(),
     name="recipe_delete",
@@ -69,4 +78,5 @@ urlpatterns = [
     name="trainee_task_detail",
 ),
     path("my-progress/", MyProgressView.as_view(), name="my_progress"),
+    path("account/", AccountView.as_view(), name="account"),
 ]
