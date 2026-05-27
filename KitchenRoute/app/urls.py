@@ -1,4 +1,5 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from .views import (
     LoginView,
     HomeView,
@@ -102,5 +103,21 @@ urlpatterns = [
     "register/general/done/",
     GeneralRegisterDoneView.as_view(),
     name="general_register_done",
+),
+    path(
+    "password-reset/",
+    auth_views.PasswordResetView.as_view(
+        template_name="app/password_reset.html",
+        email_template_name="app/password_reset_email.txt",
+        success_url="/password-reset/done/",
+    ),
+    name="password_reset",
+),
+path(
+    "password-reset/done/",
+    auth_views.PasswordResetDoneView.as_view(
+        template_name="app/password_reset_done.html",
+    ),
+    name="password_reset_done",
 ),
 ]
