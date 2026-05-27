@@ -7,7 +7,6 @@
 </head>
 <body>
     <h1>KitchenRoute</h1>
-    <h2>ログイン</h2>
 
     <form method="post">
         {% csrf_token %}
@@ -36,6 +35,28 @@
         <button type="submit">
             ログイン
         </button>
+        <br>
+
+<hr>
+
+<p>
+    <a href="{% url 'admin_register' %}">
+        管理者用アカウント新規登録
+    </a>
+</p>
+
+<p>
+    <a href="{% url 'general_register' %}">
+        一般用アカウント新規登録
+    </a>
+</p>
+
+<p>
+    パスワードを忘れた方は
+    <a href="#">
+        こちら
+    </a>
+</p>
     </form>
 </body>
 </html>

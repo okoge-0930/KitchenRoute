@@ -1,0 +1,31 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
+<div style="max-width: 420px; margin: 24px auto;">
+
+    <h1>KitchenRoute</h1>
+
+    <p>
+        アカウント登録が<br>
+        完了しました
+    </p>
+
+    <p>
+        組織コード：{{ organization_code }}
+    </p>
+
+    <p>
+        上記の組織コードを<br>
+        スタッフへ共有してください
+    </p>
+
+    <p>
+        <a href="{% url 'login' %}">
+            ログイン画面へ
+        </a>
+    </p>
+
+</div>
+
+{% endblock %}

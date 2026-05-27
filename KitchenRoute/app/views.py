@@ -1,12 +1,13 @@
 from django.contrib.auth.views import LoginView as DjangoLoginView
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView
-from .models import Progress, Recipe, Step, User
+from .models import Progress, Recipe, Step, User, Organization
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
+import uuid
 
 
 class LoginView(DjangoLoginView):
@@ -575,3 +576,139 @@ class LogoutRedirectView(TemplateView):
     def get(self, request, *args, **kwargs):
         logout(request)
         return redirect("login")
+    
+    
+class AdminRegisterView(TemplateView):
+    template_name = "app/admin_register.html"
+
+    def post(self, request, *args, **kwargs):
+        organization_name = request.POST.get(
+            "organization_name"
+        )
+
+        username = request.POST.get(
+            "username"
+        )
+
+        email = request.POST.get(
+            "email"
+        )
+
+        password = request.POST.get(
+            "password"
+        )
+
+        password_confirm = request.POST.get(
+            "password_confirm"
+        )
+
+        if password != password_confirm:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "パスワードが一致しません。"
+                },
+            )
+            
+        if Organization.objects.filter(name=organization_name).exists():
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error": 
+                    "この組織名はすでに登録されています。",
+                },
+            )
+
+        if User.objects.filter(username=username).exists():
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error": 
+                    "この名前はすでに登録されています。",
+                },
+            )
+
+        if User.objects.filter(email=email).exists():
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error": 
+                    "このメールアドレスはすでに登録されています。",
+                },
+            )
+
+        organization_code = str(
+            uuid.uuid4()
+        )[:8]
+
+        organization = Organization.objects.create(
+            name=organization_name,
+            organization_code=organization_code,
+        )
+
+        User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role=2,
+            organization=organization,
+        )
+
+        return redirect(
+            "admin_register_done"
+        )
+        
+        
+class AdminRegisterDoneView(TemplateView):
+    template_name = (
+        "app/admin_register_done.html"
+    )
+    
+    
+class GeneralRegisterView(TemplateView):
+    template_name = "app/general_register.html"
+
+    def post(self, request, *args, **kwargs):
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        password_confirm = request.POST.get("password_confirm")
+
+        if password != password_confirm:
+            return render(
+                request,
+                self.template_name,
+                {"error": "パスワードが一致しません。"},
+            )
+
+        if User.objects.filter(username=username).exists():
+            return render(
+                request,
+                self.template_name,
+                {"error": "この名前はすでに登録されています。"},
+            )
+
+        if User.objects.filter(email=email).exists():
+            return render(
+                request,
+                self.template_name,
+                {"error": "このメールアドレスはすでに登録されています。"},
+            )
+
+        User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            role=0,
+        )
+
+        return redirect("general_register_done")
+    
+    
+class GeneralRegisterDoneView(TemplateView):
+    template_name = "app/general_register_done.html"

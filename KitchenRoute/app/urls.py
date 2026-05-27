@@ -20,6 +20,10 @@ from .views import (
     AccountView,
     LogoutRedirectView,
     RecipeUpdateView,
+    AdminRegisterView,
+    AdminRegisterDoneView,
+    GeneralRegisterView,
+    GeneralRegisterDoneView,
 )
 
 urlpatterns = [
@@ -79,4 +83,24 @@ urlpatterns = [
 ),
     path("my-progress/", MyProgressView.as_view(), name="my_progress"),
     path("account/", AccountView.as_view(), name="account"),
+    path(
+    "register/admin/",
+    AdminRegisterView.as_view(),
+    name="admin_register",
+),
+    path(
+    "register/admin/done/",
+    AdminRegisterDoneView.as_view(),
+    name="admin_register_done",
+),
+    path(
+    "register/general/",
+    GeneralRegisterView.as_view(),
+    name="general_register",
+),
+    path(
+    "register/general/done/",
+    GeneralRegisterDoneView.as_view(),
+    name="general_register_done",
+),
 ]
