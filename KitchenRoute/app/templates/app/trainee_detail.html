@@ -14,30 +14,41 @@
             <h3>{{ recipe_item.recipe.name }}</h3>
 
            {% for step_item in recipe_item.steps %}
-                <div style="margin-bottom: 10px;">
-                    <span>
-                        No.{{ step_item.step.order }}
-                        {{ step_item.step.name }}
+    <div style="margin-bottom: 10px;">
 
-                        {% if step_item.is_completed %}
-                            合格済み
-                        {% else %}
-                            未合格
-                        {% endif %}
-                    </span>
+        <div>
+            No.{{ step_item.step.order }}
+            {{ step_item.step.name }}
 
-                    {% if not step_item.is_completed %}
-                        <form
-                            method="post"
-                            action="{% url 'mark_step_passed' trainee.id step_item.step.id %}"
-                            style="display: inline; margin-left: 8px;"
-                        >
-                            {% csrf_token %}
-                            <button type="submit">合格にする</button>
-                        </form>
-                    {% endif %}
-                </div>
-            {% endfor %}
+            {% if step_item.is_completed %}
+                合格済み
+            {% else %}
+                未合格
+            {% endif %}
+        </div>
+
+        {% if step_item.is_completed and step_item.progress.recorded_by %}
+            <div style="font-size: 13px; color: #666;">
+                合格登録者：
+                {{ step_item.progress.recorded_by.username }}
+            </div>
+        {% endif %}
+
+        {% if not step_item.is_completed %}
+            <form
+                method="post"
+                action="{% url 'mark_step_passed' trainee.id step_item.step.id %}"
+                style="display: inline; margin-top: 4px;"
+            >
+                {% csrf_token %}
+                <button type="submit">
+                    合格にする
+                </button>
+            </form>
+        {% endif %}
+
+        </div>
+    {% endfor %}
         </div>
     {% endfor %}
 

@@ -34,25 +34,48 @@ class EducatorHomeView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        search_keyword = self.request.GET.get("keyword", "")
+
         users = User.objects.filter(
             organization=self.request.user.organization
-        ).order_by("-role", "id")
+        )
+
+        if search_keyword:
+            users = users.filter(
+                username__icontains=search_keyword
+            )
+
+        role_order = {
+            2: 0,
+            1: 1,
+            0: 2,
+        }
+
+        users = sorted(
+            users,
+            key=lambda user: (
+                role_order.get(user.role, 99),
+                user.id,
+            )
+        )
 
         user_summaries = []
 
-        total_steps = Step.objects.count()
+        total_steps = Step.objects.filter(
+            recipe__organization=self.request.user.organization
+        ).count()
 
         for user in users:
             completed_count = Progress.objects.filter(
-                trainee=user
+                trainee=user,
+                step__recipe__organization=self.request.user.organization,
             ).count()
 
-            if total_steps == 0:
-                progress_rate = 0
-            else:
-                progress_rate = round(
-                    completed_count / total_steps * 100
-                )
+            progress_rate = (
+                round(completed_count / total_steps * 100)
+                if total_steps > 0
+                else 0
+            )
 
             user_summaries.append(
                 {
@@ -62,6 +85,7 @@ class EducatorHomeView(LoginRequiredMixin, TemplateView):
             )
 
         context["user_summaries"] = user_summaries
+        context["search_keyword"] = search_keyword
 
         return context
 
@@ -125,14 +149,21 @@ class AdminHomeView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        search_keyword = self.request.GET.get("keyword", "")
+
         users = User.objects.filter(
-    organization=self.request.user.organization
+            organization=self.request.user.organization
         )
 
+        if search_keyword:
+            users = users.filter(
+                username__icontains=search_keyword
+            )
+
         role_order = {
-            2: 0,  # 管理者
-            1: 1,  # 教育者
-            0: 2,  # 新人
+            2: 0,
+            1: 1,
+            0: 2,
         }
 
         users = sorted(
@@ -144,17 +175,22 @@ class AdminHomeView(LoginRequiredMixin, TemplateView):
         )
 
         user_summaries = []
-        total_steps = Step.objects.count()
+
+        total_steps = Step.objects.filter(
+            recipe__organization=self.request.user.organization
+        ).count()
 
         for user in users:
             completed_count = Progress.objects.filter(
-                trainee=user
+                trainee=user,
+                step__recipe__organization=self.request.user.organization,
             ).count()
 
-            if total_steps == 0:
-                progress_rate = 0
-            else:
-                progress_rate = round(completed_count / total_steps * 100)
+            progress_rate = (
+                round(completed_count / total_steps * 100)
+                if total_steps > 0
+                else 0
+            )
 
             user_summaries.append(
                 {
@@ -164,6 +200,7 @@ class AdminHomeView(LoginRequiredMixin, TemplateView):
             )
 
         context["user_summaries"] = user_summaries
+        context["search_keyword"] = search_keyword
 
         return context
 
@@ -194,15 +231,18 @@ class TraineeDetailView(LoginRequiredMixin, TemplateView):
             step_items = []
 
             for step in steps:
-                is_completed = Progress.objects.filter(
+                progress = Progress.objects.filter(
                     trainee=trainee,
                     step=step,
-                ).exists()
+                ).first()
+
+                is_completed = progress is not None
 
                 step_items.append(
                     {
                         "step": step,
                         "is_completed": is_completed,
+                        "progress": progress,
                     }
                 )
 
@@ -578,6 +618,19 @@ class LogoutRedirectView(TemplateView):
         return redirect("login")
     
     
+def is_valid_password(password):
+    if password is None:
+        return False
+
+    if len(password) < 8:
+        return False
+
+    has_alpha = any(char.isalpha() for char in password)
+    has_digit = any(char.isdigit() for char in password)
+
+    return has_alpha and has_digit
+    
+    
 class AdminRegisterView(TemplateView):
     template_name = "app/admin_register.html"
 
@@ -609,6 +662,16 @@ class AdminRegisterView(TemplateView):
                 {
                     "error":
                     "パスワードが一致しません。"
+                },
+            )
+            
+        if not is_valid_password(password):
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "パスワードは8文字以上で、英字と数字を含めてください。"
                 },
             )
             
@@ -684,6 +747,16 @@ class GeneralRegisterView(TemplateView):
                 request,
                 self.template_name,
                 {"error": "パスワードが一致しません。"},
+            )
+            
+        if not is_valid_password(password):
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "パスワードは8文字以上で、英字と数字を含めてください。"
+                },
             )
 
         if User.objects.filter(username=username).exists():

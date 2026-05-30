@@ -10,6 +10,19 @@
 
     <h3>ユーザー一覧</h3>
 
+    <form method="get" style="margin-bottom: 16px;">
+        <input
+            type="text"
+            name="keyword"
+            value="{{ search_keyword }}"
+        >
+
+        <button type="submit">
+            検索
+        </button>
+
+    </form>
+
     {% if user_summaries %}
         {% for summary in user_summaries %}
             <div style="border: 1px solid #999; padding: 12px; margin-bottom: 12px;">
