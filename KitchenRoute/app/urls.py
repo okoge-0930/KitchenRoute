@@ -25,6 +25,8 @@ from .views import (
     AdminRegisterDoneView,
     GeneralRegisterView,
     GeneralRegisterDoneView,
+    AccountUsernameUpdateView,
+    AccountEmailUpdateView,
 )
 
 urlpatterns = [
@@ -135,5 +137,24 @@ path(
         template_name="app/password_reset_complete.html",
     ),
     name="password_reset_complete",
+),
+path(
+    "account/username/update/",
+    AccountUsernameUpdateView.as_view(),
+    name="account_username_update",
+),
+
+path(
+    "account/email/update/",
+    AccountEmailUpdateView.as_view(),
+    name="account_email_update",
+),
+path(
+    "account/password/change/",
+    auth_views.PasswordChangeView.as_view(
+        template_name="app/account_password_change.html",
+        success_url="/account/",
+    ),
+    name="account_password_change",
 ),
 ]

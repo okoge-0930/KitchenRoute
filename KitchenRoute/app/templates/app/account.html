@@ -45,7 +45,10 @@
                 <strong>{{ user.username }}</strong>
             </div>
 
-            <button disabled>
+            <button
+                type="button"
+                onclick="location.href='{% url 'account_username_update' %}'"
+            >
                 変更する
             </button>
         </div>
@@ -61,7 +64,10 @@
                 <strong>{{ user.email }}</strong>
             </div>
 
-            <button disabled>
+            <button
+                type="button"
+                onclick="location.href='{% url 'account_email_update' %}'"
+            >
                 変更する
             </button>
         </div>
@@ -76,7 +82,10 @@
                 <strong>••••••••</strong>
             </div>
 
-            <button disabled>
+           <button
+                type="button"
+                onclick="location.href='{% url 'account_password_change' %}'"
+            >
                 変更する
             </button>
         </div>

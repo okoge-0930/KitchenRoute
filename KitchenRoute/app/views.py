@@ -8,7 +8,8 @@ from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 import uuid
-
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 class LoginView(DjangoLoginView):
     template_name = "app/login.html"
@@ -611,6 +612,106 @@ class MyProgressView(LoginRequiredMixin, TemplateView):
 class AccountView(LoginRequiredMixin, TemplateView):
     template_name = "app/account.html"
     
+class AccountUsernameUpdateView(LoginRequiredMixin,TemplateView):
+    template_name = (
+        "app/account_username_update.html"
+    )
+
+    def get_context_data(
+        self,
+        **kwargs
+    ):
+        context = super().get_context_data(
+            **kwargs
+        )
+
+        context["current_username"] = (
+            self.request.user.username
+        )
+
+        return context
+
+    def post(
+        self,
+        request,
+        *args,
+        **kwargs
+    ):
+        username = request.POST.get(
+            "username"
+        )
+
+        if User.objects.filter(
+            username=username
+        ).exclude(
+            id=request.user.id
+        ).exists():
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "この名前はすでに登録されています。",
+                    "current_username":
+                    request.user.username,
+                },
+            )
+
+        request.user.username = username
+        request.user.save()
+
+        return redirect("account")
+
+
+class AccountEmailUpdateView(LoginRequiredMixin,TemplateView):
+    template_name = (
+        "app/account_email_update.html"
+    )
+
+    def get_context_data(
+        self,
+        **kwargs
+    ):
+        context = super().get_context_data(
+            **kwargs
+        )
+
+        context["current_email"] = (
+            self.request.user.email
+        )
+
+        return context
+
+    def post(
+        self,
+        request,
+        *args,
+        **kwargs
+    ):
+        email = request.POST.get(
+            "email"
+        )
+
+        if User.objects.filter(
+            email=email
+        ).exclude(
+            id=request.user.id
+        ).exists():
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "このメールアドレスはすでに登録されています。",
+                    "current_email":
+                    request.user.email,
+                },
+            )
+
+        request.user.email = email
+        request.user.save()
+
+        return redirect("account")
     
 class LogoutRedirectView(TemplateView):
     def get(self, request, *args, **kwargs):
@@ -664,14 +765,15 @@ class AdminRegisterView(TemplateView):
                     "パスワードが一致しません。"
                 },
             )
-            
-        if not is_valid_password(password):
+        try:
+            validate_password(password)
+        except ValidationError as error:
             return render(
                 request,
                 self.template_name,
                 {
                     "error":
-                    "パスワードは8文字以上で、英字と数字を含めてください。"
+                     error.messages[0],
                 },
             )
             
@@ -749,14 +851,16 @@ class GeneralRegisterView(TemplateView):
                 {"error": "パスワードが一致しません。"},
             )
             
-        if not is_valid_password(password):
+        try:
+            validate_password(password)
+        except ValidationError as error:
             return render(
                 request,
                 self.template_name,
-                {
-                    "error":
-                    "パスワードは8文字以上で、英字と数字を含めてください。"
-                },
+             {
+                "error":
+                 error.messages[0],
+             },
             )
 
         if User.objects.filter(username=username).exists():
