@@ -1,18 +1,61 @@
-<h1>KitchenRoute</h1>
+{% extends "app/base.html" %}
 
-<h2>レシピ登録</h2>
+{% block content %}
 
-<form method="post">
-    {% csrf_token %}
+<div style="max-width: 420px; margin: 24px auto;">
 
-    <label>レシピ名</label><br>
-    <input type="text" name="name">
+    <h2 style="text-align: center;">
+        レシピ登録
+    </h2>
 
-    <br><br>
+    <form method="post">
+        {% csrf_token %}
 
-    <button type="submit">登録</button>
-</form>
+        <label>レシピ名</label><br>
 
-<br>
+        <input
+            type="text"
+            name="name"
+            style="
+                width: 100%;
+                padding: 8px;
+            "
+        >
 
-<a href="{% url 'skill_management' %}">キャンセル</a>
+        <div style="
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+        ">
+
+            <button
+                type="submit"
+                style="
+                    background-color: #f2c94c;
+                    border: 1px solid #999;
+                    padding: 8px 16px;
+                "
+            >
+                登録
+            </button>
+
+            <button
+                type="button"
+                onclick="location.href='{% url 'skill_management' %}'"
+                style="
+                    background-color: #2f80ed;
+                    color: white;
+                    border: 1px solid #999;
+                    padding: 8px 16px;
+                "
+            >
+                キャンセル
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

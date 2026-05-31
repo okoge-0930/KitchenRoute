@@ -2,76 +2,154 @@
 
 {% block content %}
 
-<h1>KitchenRoute</h1>
+<div style="max-width: 420px; margin: 24px auto;">
 
-<p>
-    <a href="{% url 'skill_management' %}">
-        ＜戻る
-    </a>
-</p>
+    <p>
+        <a href="{% url 'skill_management' %}">
+            ＜戻る
+        </a>
+    </p>
 
-<h2>スキル管理</h2>
-<h3>工程一覧</h3>
+    <h2 style="text-align: center;">
+        スキル管理
+    </h2>
 
-<div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-    <strong>レシピ名　{{ recipe.name }}</strong>
+    <h3 style="text-align: center;">
+        工程一覧
+    </h3>
 
-    <a href="{% url 'recipe_update' recipe.id %}">
-        編集
-    </a>
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    ">
 
-    <form
-        method="post"
-        action="{% url 'recipe_delete' recipe.id %}"
-        style="display: inline; margin: 0;"
-    >
-        {% csrf_token %}
+        <strong>
+            レシピ名　{{ recipe.name }}
+        </strong>
+
+        <div style="
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        ">
+
+            <button
+                type="button"
+                onclick="location.href='{% url 'recipe_update' recipe.id %}'"
+                style="
+                    background-color: #f2c94c;
+                    border: 1px solid #999;
+                    padding: 4px 10px;
+                "
+            >
+                編集
+            </button>
+
+            <form
+                method="post"
+                action="{% url 'recipe_delete' recipe.id %}"
+                style="margin: 0;"
+            >
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    style="
+                        background-color: #eb5757;
+                        color: white;
+                        border: 1px solid #999;
+                        padding: 4px 10px;
+                    "
+                    onclick="return confirm('⚠️警告\nレシピ削除をすると登録された全工程も削除されます。\n本当に削除しますか？')"
+                >
+                    削除
+                </button>
+            </form>
+
+        </div>
+    </div>
+
+    {% if steps %}
+        {% for step in steps %}
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            ">
+
+                <span>
+                    No.{{ step.order }}
+                    {{ step.name }}
+                </span>
+
+                <div style="
+                    display: flex;
+                    gap: 8px;
+                    flex-shrink: 0;
+                ">
+
+                    <button
+                        type="button"
+                        onclick="location.href='{% url 'step_update' step.id %}'"
+                        style="
+                            background-color: #f2c94c;
+                            border: 1px solid #999;
+                            padding: 4px 10px;
+                        "
+                    >
+                        編集
+                    </button>
+
+                    <form
+                        method="post"
+                        action="{% url 'step_delete' step.id %}"
+                        style="margin: 0;"
+                    >
+                        {% csrf_token %}
+
+                        <button
+                            type="submit"
+                            style="
+                                background-color: #eb5757;
+                                color: white;
+                                border: 1px solid #999;
+                                padding: 4px 10px;
+                            "
+                            onclick="return confirm('⚠️警告\nこの操作は元に戻せません。\n工程を削除しますか？')"
+                        >
+                            削除
+                        </button>
+                    </form>
+
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center;">
+            登録された工程はありません。
+        </p>
+    {% endif %}
+
+    <div style="
+        text-align: center;
+        margin-top: 24px;
+    ">
         <button
-            type="submit"
-            onclick="return confirm('⚠️警告\nレシピ削除をすると登録された全工程も削除されます。\n本当に削除しますか？')"
+            type="button"
+            onclick="location.href='{% url 'step_create' recipe.id %}'"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 8px 16px;
+            "
         >
-            削除
+            工程を追加
         </button>
-    </form>
+    </div>
+
 </div>
-
-{% if steps %}
-    {% for step in steps %}
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
-    <span>
-        No.{{ step.order }}
-        {{ step.name }}
-    </span>
-
-    <a href="{% url 'step_update' step.id %}">
-        編集
-    </a>
-
-    <form
-        method="post"
-        action="{% url 'step_delete' step.id %}"
-        style="display: inline; margin: 0;"
-    >
-        {% csrf_token %}
-        <button
-            type="submit"
-            onclick="return confirm('⚠️警告\nこの操作は元に戻せません。\n工程を削除しますか？')"
-        >
-            削除
-        </button>
-    </form>
-</div>
-    {% endfor %}
-{% else %}
-    <p>登録された工程はありません。</p>
-{% endif %}
-
-<hr>
-
-<p>
-    <a href="{% url 'step_create' recipe.id %}">
-        ＋工程を追加
-    </a>
-</p>
 
 {% endblock %}

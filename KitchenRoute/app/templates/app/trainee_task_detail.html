@@ -2,10 +2,10 @@
 
 {% block content %}
 
-    <h1>KitchenRoute</h1>
-
-    <h2>{{ user.username }}さんのタスク</h2>
-
+    <h2 style="text-align: center;">
+        {{ user.username }}さんのタスク
+    </h2>
+    
     <p>{{ recipe.name }} の進捗　{{ progress_rate }}%</p>
 
     {% if steps %}

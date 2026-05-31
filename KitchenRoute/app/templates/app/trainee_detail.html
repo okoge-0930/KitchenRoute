@@ -4,14 +4,16 @@
 
 <div style="max-width: 420px; margin: 24px auto;">
 
-    <h1>KitchenRoute</h1>
-
-    <h2>{{ trainee.username }} さんの進捗</h2>
+    <h2 style="text-align: center;">
+        {{ trainee.username }} さんの進捗
+    </h2>
 
     {% for recipe_item in recipe_progresses %}
         <div style="border: 1px solid #999; padding: 12px; margin-bottom: 12px;">
 
-            <h3>{{ recipe_item.recipe.name }}</h3>
+            <h3 style="text-align: center;">
+                {{ recipe_item.recipe.name }}
+        </h3>
 
            {% for step_item in recipe_item.steps %}
     <div style="margin-bottom: 10px;">

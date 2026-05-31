@@ -4,29 +4,86 @@ from django.views.generic import TemplateView
 from .models import Progress, Recipe, Step, User, Organization
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.auth import logout
+from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 import uuid
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
-class LoginView(DjangoLoginView):
+
+class LoginView(TemplateView):
     template_name = "app/login.html"
 
-    def get_success_url(self):
-        user = self.request.user
+    def post(self, request, *args, **kwargs):
+        organization_code = request.POST.get("organization_code")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        organization = Organization.objects.filter(
+            organization_code=organization_code
+        ).first()
+
+        if organization is None:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "メールアドレス、パスワード、または組織コードが正しくありません。",
+                },
+            )
+
+        user = User.objects.filter(
+            email=email
+        ).first()
+
+        if user is None:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "メールアドレス、パスワード、または組織コードが正しくありません。",
+                },
+            )
+
+        if not user.check_password(password):
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "メールアドレス、パスワード、または組織コードが正しくありません。",
+                },
+            )
+
+        if user.organization is None:
+            user.organization = organization
+            user.save()
+
+        elif user.organization != organization:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error":
+                    "メールアドレス、パスワード、または組織コードが正しくありません。",
+                },
+            )
+
+        login(request, user)
 
         if user.role == 0:
-            return "/trainee-home/"
+            return redirect("trainee_home")
 
         if user.role == 1:
-            return "/educator-home/"
+            return redirect("educator_home")
 
         if user.role == 2:
-            return "/admin-home/"
+            return redirect("admin_home")
 
-        return "/"
+        return redirect("home")
     
 
 class EducatorHomeView(LoginRequiredMixin, TemplateView):
@@ -98,7 +155,10 @@ class TraineeHomeView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         trainee = self.request.user
-        recipes = Recipe.objects.all()
+
+        recipes = Recipe.objects.filter(
+            organization=trainee.organization
+        ).order_by("id")
 
         task_list = []
 
@@ -110,7 +170,7 @@ class TraineeHomeView(LoginRequiredMixin, TemplateView):
             for step in steps:
                 completed = Progress.objects.filter(
                     trainee=trainee,
-                    step=step
+                    step=step,
                 ).exists()
 
                 if not completed:
@@ -120,24 +180,32 @@ class TraineeHomeView(LoginRequiredMixin, TemplateView):
             if next_step:
                 completed_count = Progress.objects.filter(
                     trainee=trainee,
-                    step__recipe=recipe
+                    step__recipe=recipe,
                 ).count()
 
                 total_count = steps.count()
 
                 progress_rate = (
-                    round(completed_count / total_count * 100)
+                    round(
+                        completed_count
+                        / total_count
+                        * 100
+                    )
                     if total_count > 0
                     else 0
                 )
 
-                task_list.append({
-                    "recipe": recipe,
-                    "step": next_step,
-                    "progress_rate": progress_rate,
-                })
+                task_list.append(
+                    {
+                        "recipe": recipe,
+                        "step": next_step,
+                        "progress_rate": progress_rate,
+                    }
+                )
 
-        task_list.sort(key=lambda x: x["progress_rate"])
+        task_list.sort(
+            key=lambda item: item["progress_rate"]
+        )
 
         context["task_list"] = task_list[:5]
 

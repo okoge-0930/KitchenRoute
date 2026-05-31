@@ -4,22 +4,38 @@
 
 <div style="max-width: 420px; margin: 24px auto;">
 
-    <h1>KitchenRoute</h1>
+    <h2 style="text-align: center;">
+        ユーザー一覧
+    </h2>
 
-    <h2>管理者ホーム</h2>
+    <form method="get" style="margin-bottom: 20px;">
 
-    <h3>ユーザー一覧</h3>
+        <div style="
+            width: 240px;
+            margin: 0 auto;
+        ">
 
-    <form method="get" style="margin-bottom: 16px;">
-        <input
-            type="text"
-            name="keyword"
-            value="{{ search_keyword }}"
-        >
+            <div style="
+                margin-bottom: 8px;
+                text-align: left;
+            ">
+                ユーザー検索
+            </div>
 
-        <button type="submit">
-            検索
-        </button>
+            <div style="text-align: center;">
+                <input
+                    type="text"
+                    name="keyword"
+                    value="{{ search_keyword }}"
+                    style="height: 28px; width: 180px;"
+                >
+
+                <button type="submit">
+                    検索
+                </button>
+            </div>
+
+        </div>
 
     </form>
 
@@ -31,9 +47,12 @@
                     {% if summary.user.role == 0 %}
                         <strong>👤 {{ summary.user.username }}</strong>
 
-                        <a href="{% url 'trainee_detail' summary.user.id %}">
+                        <button
+                            type="button"
+                            onclick="location.href='{% url 'trainee_detail' summary.user.id %}'"
+                        >
                             詳細
-                        </a>
+                        </button>
 
                     {% elif summary.user.role == 1 %}
                         <strong>🧑‍🍳 {{ summary.user.username }}</strong>
@@ -47,8 +66,19 @@
                     <div style="margin-top: 8px;">
                         進捗率：{{ summary.progress_rate }}%
 
-                        <div style="display: inline-block; width: 120px; height: 16px; border: 1px solid #999; margin-left: 10px; vertical-align: middle;">
-                            <div style="height: 100%; width: {{ summary.progress_rate }}%; background-color: #f2c94c;"></div>
+                        <div style="
+                            display: inline-block;
+                            width: 120px;
+                            height: 16px;
+                            border: 1px solid #999;
+                            margin-left: 10px;
+                            vertical-align: middle;
+                        ">
+                            <div style="
+                                height: 100%;
+                                width: {{ summary.progress_rate }}%;
+                                background-color: #f2c94c;
+                            "></div>
                         </div>
                     </div>
                 {% endif %}
@@ -86,7 +116,9 @@
             </div>
         {% endfor %}
     {% else %}
-        <p>表示できるユーザーがいません。</p>
+        <p style="text-align: center;">
+            表示できるユーザーがいません。
+        </p>
     {% endif %}
 
 </div>

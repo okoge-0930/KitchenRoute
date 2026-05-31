@@ -5,58 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ログイン | KitchenRoute</title>
 </head>
-<body>
-    <h1>KitchenRoute</h1>
+
+<body style="margin: 0;">
+
+<div style="
+    max-width: 300px;
+    margin: 40px auto;
+    text-align: center;
+">
+
+    <div style="
+        display: inline-block;
+        background-color: #f2c94c;
+        color: white;
+        padding: 12px 18px;
+        font-size: 34px;
+        font-weight: bold;
+        margin-bottom: 34px;
+    ">
+        KitchenRoute
+    </div>
+
+    {% if error %}
+        <p style="color: red; text-align: left;">
+            {{ error }}
+        </p>
+    {% endif %}
 
     <form method="post">
         {% csrf_token %}
 
-        <div>
+        <div style="margin-bottom: 22px; text-align: left;">
             <label>組織コード</label><br>
-            <input type="text" name="organization_code">
+            <input
+                type="text"
+                name="organization_code"
+                required
+                style="width: 100%; height: 32px;"
+            >
         </div>
 
-        <br>
-
-        <div>
+        <div style="margin-bottom: 22px; text-align: left;">
             <label>メールアドレス</label><br>
-            <input type="text" name="username">
+            <input
+                type="email"
+                name="email"
+                required
+                style="width: 100%; height: 32px;"
+            >
         </div>
 
-        <br>
-
-        <div>
+        <div style="margin-bottom: 24px; text-align: left;">
             <label>パスワード</label><br>
-            <input type="password" name="password">
+            <input
+                type="password"
+                name="password"
+                required
+                style="width: 100%; height: 32px;"
+            >
         </div>
 
-        <br>
-
-        <button type="submit">
+        <button type="submit" style="
+            width: 180px;
+            background-color: #f2c94c;
+            border: 1px solid #999;
+            padding: 10px;
+            font-size: 15px;
+        ">
             ログイン
         </button>
-        <br>
-
-<hr>
-
-<p>
-    <a href="{% url 'admin_register' %}">
-        管理者用アカウント新規登録
-    </a>
-</p>
-
-<p>
-    <a href="{% url 'general_register' %}">
-        一般用アカウント新規登録
-    </a>
-</p>
-
-<p>
-    パスワードを忘れた方は
-    <a href="{% url 'password_reset' %}">
-        こちら
-    </a>
-</p>
     </form>
+
+    <div style="
+        margin-top: 28px;
+        font-size: 13px;
+        text-align: center;
+    ">
+        <p>
+            <a href="{% url 'admin_register' %}">
+                管理者用アカウント新規登録
+            </a>
+        </p>
+
+        <p>
+            <a href="{% url 'general_register' %}">
+                一般用アカウント新規登録
+            </a>
+        </p>
+
+        <p>
+            パスワードを忘れた方は
+            <a href="{% url 'password_reset' %}">
+                こちら
+            </a>
+        </p>
+    </div>
+
+</div>
+
 </body>
-</html>
+</html>ß

@@ -2,28 +2,44 @@
 
 {% block content %}
 
-<h1>KitchenRoute</h1>
+<div style="max-width: 420px; margin: 24px auto;">
 
-<h2>スキル管理</h2>
-<h3>レシピ一覧</h3>
+    <h2 style="text-align: center;">
+        スキル管理
+    </h2>
 
-{% if recipes %}
-    {% for recipe in recipes %}
-        <p>
-            <a href="{% url 'step_management' recipe.id %}">
-                &gt;{{ recipe.name }}
-            </a>
+    <h3 style="text-align: center;">
+        レシピ一覧
+    </h3>
+
+    {% if recipes %}
+        {% for recipe in recipes %}
+            <p>
+                <a href="{% url 'step_management' recipe.id %}">
+                    ＞ {{ recipe.name }}
+                </a>
+            </p>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center;">
+            登録されたレシピはありません。
         </p>
-    {% endfor %}
-{% else %}
-    <p>登録されたレシピはありません。</p>
-{% endif %}
+    {% endif %}
 
-<hr>
+    <div style="text-align: center; margin-top: 24px;">
+        <button
+            type="button"
+            onclick="location.href='{% url 'recipe_create' %}'"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 8px 16px;
+            "
+        >
+            レシピを追加
+        </button>
+    </div>
 
-<a href="{% url 'recipe_create' %}">
-    レシピを追加
-</a>
-
+</div>
 
 {% endblock %}

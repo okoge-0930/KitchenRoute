@@ -1,25 +1,74 @@
-<h1>KitchenRoute</h1>
+{% extends "app/base.html" %}
 
-<h2>工程編集</h2>
+{% block content %}
 
-<p>レシピ名：{{ step.recipe.name }}</p>
+<div style="max-width: 420px; margin: 24px auto;">
 
-<form method="post">
-    {% csrf_token %}
+    <h2 style="text-align: center;">
+        工程編集
+    </h2>
 
-    <label>順序</label><br>
-    <input type="number" name="order" value="{{ step.order }}">
+    <p>
+        レシピ名：{{ step.recipe.name }}
+    </p>
 
-    <br><br>
+    <form method="post">
+        {% csrf_token %}
 
-    <label>工程名</label><br>
-    <input type="text" name="name" value="{{ step.name }}">
+        <label>順序</label><br>
 
-    <br><br>
+        <input
+            type="number"
+            name="order"
+            value="{{ step.order }}"
+            style="width: 100%; padding: 8px;"
+        >
 
-    <button type="submit">更新</button>
-</form>
+        <br><br>
 
-<br>
+        <label>工程名</label><br>
 
-<a href="{% url 'step_management' step.recipe.id %}">キャンセル</a>
+        <input
+            type="text"
+            name="name"
+            value="{{ step.name }}"
+            style="width: 100%; padding: 8px;"
+        >
+
+        <div style="
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+        ">
+
+            <button
+                type="submit"
+                style="
+                    background-color: #f2c94c;
+                    border: 1px solid #999;
+                    padding: 8px 16px;
+                "
+            >
+                更新
+            </button>
+
+            <button
+                type="button"
+                onclick="location.href='{% url 'step_management' step.recipe.id %}'"
+                style="
+                    background-color: #2f80ed;
+                    color: white;
+                    border: 1px solid #999;
+                    padding: 8px 16px;
+                "
+            >
+                キャンセル
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

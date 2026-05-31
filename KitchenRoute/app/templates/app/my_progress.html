@@ -4,13 +4,15 @@
 
 <div style="max-width: 420px; margin: 24px auto;">
 
-    <h1>KitchenRoute</h1>
-
-    <h2>{{ user.username }}さんの進捗</h2>
+    <h2 style="text-align: center;">
+        {{ user.username }}さんの進捗
+    </h2>
 
     <p>全体進捗　{{ overall_progress_rate }}%</p>
 
-    <h3>直近30日の成長</h3>
+    <h3 style="text-align: center;">
+        直近30日の成長
+    </h3>
 
     <div style="border: 1px solid #999; padding: 10px; margin-bottom: 12px;">
         {% if recent_recipe_progresses %}
@@ -27,8 +29,9 @@
         {% endif %}
     </div>
 
-    <h3>レシピごとの進捗</h3>
-
+    <h3 style="text-align: center;">
+        レシピごとの進捗
+    </h3>
     {% if recipe_progresses %}
         {% for item in recipe_progresses %}
             <div style="border: 1px solid #999; padding: 10px; margin-bottom: 12px;">

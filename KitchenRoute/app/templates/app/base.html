@@ -2,10 +2,43 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+        rel="stylesheet"
+    >
+
     <title>KitchenRoute</title>
 </head>
-<body>
-    <main style="padding-bottom: 70px;">
+
+<body style="margin: 0;">
+
+    {% if user.is_authenticated %}
+        <header style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #f2c94c;
+            color: white;
+            padding: 18px 20px;
+            z-index: 1000;
+            box-sizing: border-box;
+        ">
+            <div style="
+                font-size: 28px;
+                font-weight: bold;
+            ">
+                KitchenRoute
+            </div>
+        </header>
+    {% endif %}
+
+    <main style="
+        padding-top: {% if user.is_authenticated %}90px{% else %}0{% endif %};
+        padding-bottom: {% if user.is_authenticated %}95px{% else %}0{% endif %};
+    ">
         {% block content %}
         {% endblock %}
     </main>
@@ -17,27 +50,81 @@
             left: 0;
             width: 100%;
             background-color: #f2c94c;
-            border-top: 1px solid #999;
+            border-top: 1px solid #d8b93f;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
             padding: 10px 0;
-            text-align: center;
+            z-index: 1000;
+            box-sizing: border-box;
         ">
+
             {% if user.role == 0 %}
-                <a href="{% url 'trainee_home' %}" style="margin: 0 12px;">ホーム</a>
-                <a href="{% url 'my_progress' %}" style="margin: 0 12px;">マイ進捗</a>
-                <a href="{% url 'account' %}" style="margin: 0 12px;">アカウント</a>
-                <a href="{% url 'logout' %}" style="margin: 0 12px;">ログアウト</a>
-            {% elif user.role == 1 %}
-                <a href="{% url 'educator_home' %}" style="margin: 0 12px;">ホーム</a>
-                <a href="{% url 'skill_management' %}" style="margin: 0 12px;">スキル管理</a>
-                <a href="{% url 'account' %}" style="margin: 0 12px;">アカウント</a>
-                <a href="{% url 'logout' %}" style="margin: 0 12px;">ログアウト</a>
-            {% elif user.role == 2 %}
-                <a href="{% url 'admin_home' %}" style="margin: 0 12px;">ホーム</a>
-                <a href="{% url 'skill_management' %}" style="margin: 0 12px;">スキル管理</a>
-                <a href="{% url 'account' %}" style="margin: 0 12px;">アカウント</a>
-                <a href="{% url 'logout' %}" style="margin: 0 12px;">ログアウト</a>
+                <a href="{% url 'trainee_home' %}" style="text-decoration: none; color: black; text-align: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">
+                        home
+                    </span>
+                    <div style="font-size: 12px;">ホーム</div>
+                </a>
+
+                <a href="{% url 'my_progress' %}" style="text-decoration: none; color: black; text-align: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">
+                        monitoring
+                    </span>
+                    <div style="font-size: 12px;">進捗</div>
+                </a>
+
+                <a href="{% url 'account' %}" style="text-decoration: none; color: black; text-align: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">
+                        person
+                    </span>
+                    <div style="font-size: 12px;">アカウント</div>
+                </a>
+
+                <a href="{% url 'logout' %}" style="text-decoration: none; color: black; text-align: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">
+                        logout
+                 </span>
+                    <div style="font-size: 12px;">ログアウト</div>
+                </a>
+
+            {% elif user.role == 1 or user.role == 2 %}
+
+                {% if user.role == 1 %}
+                    <a href="{% url 'educator_home' %}" style="text-decoration: none; color: black; text-align: center;">
+                {% else %}
+                    <a href="{% url 'admin_home' %}" style="text-decoration: none; color: black; text-align: center;">
+                {% endif %}
+                        <span class="material-symbols-outlined" style="font-size: 30px;">
+                            home
+                        </span>
+                        <div style="font-size: 12px;">ホーム</div>
+                    </a>
+
+                <a href="{% url 'skill_management' %}" style="text-decoration: none; color: black; text-align: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">
+                        edit_note
+                    </span>
+                    <div style="font-size: 12px;">スキル管理</div>
+                </a>
+
+                <a href="{% url 'account' %}" style="text-decoration: none; color: black; text-align: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">
+                        person
+                    </span>
+                    <div style="font-size: 12px;">アカウント</div>
+                </a>
+
+                <a href="{% url 'logout' %}" style="text-decoration: none; color: black; text-align: center;">
+                    <span class="material-symbols-outlined" style="font-size: 30px;">
+                        logout
+                    </span>
+                    <div style="font-size: 12px;">ログアウト</div>
+                </a>
+
             {% endif %}
         </nav>
     {% endif %}
+
 </body>
 </html>

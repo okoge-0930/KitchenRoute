@@ -4,9 +4,9 @@
 
 <div style="max-width: 420px; margin: 24px auto;">
 
-    <h1>KitchenRoute</h1>
-
-    <h2>レシピ編集</h2>
+    <h2 style="text-align: center;">
+        レシピ編集
+    </h2>
 
     <form method="post">
         {% csrf_token %}
@@ -21,11 +21,38 @@
             style="width: 100%; padding: 8px;"
         >
 
-        <div style="margin-top: 16px;">
-            <button type="submit">
+        <div style="
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+        ">
+
+            <button
+                type="submit"
+                style="
+                    background-color: #f2c94c;
+                    border: 1px solid #999;
+                    padding: 8px 16px;
+                "
+            >
                 保存
             </button>
+
+            <button
+                type="button"
+                onclick="history.back()"
+                style="
+                    background-color: #2f80ed;
+                    color: white;
+                    border: 1px solid #999;
+                    padding: 8px 16px;
+                "
+            >
+                キャンセル
+            </button>
+
         </div>
+
     </form>
 
 </div>
