@@ -10,8 +10,8 @@
 
     <p>全体進捗　{{ overall_progress_rate }}%</p>
 
-    <h3 style="text-align: center;">
-        直近30日の成長
+    <h3 style="text-align: left;">
+        ▪︎ 直近30日の成長
     </h3>
 
     <div style="border: 1px solid #999; padding: 10px; margin-bottom: 12px;">
@@ -29,32 +29,37 @@
         {% endif %}
     </div>
 
-    <h3 style="text-align: center;">
-        レシピごとの進捗
+    <h3 style="text-align: left;">
+        ▪︎ レシピごとの進捗（低い順）
     </h3>
+
     {% if recipe_progresses %}
         {% for item in recipe_progresses %}
-            <div style="border: 1px solid #999; padding: 10px; margin-bottom: 12px;">
-
-                <p>
+            <details style="
+                border: 1px solid #999;
+                padding: 10px;
+                margin-bottom: 12px;
+            ">
+                <summary style="cursor: pointer;">
                     <strong>{{ item.recipe.name }}</strong>
                     {{ item.progress_rate }}%
-                </p>
+                </summary>
 
-                {% for step_item in item.steps %}
-                    <p>
-                        No.{{ step_item.step.order }}
-                        {{ step_item.step.name }}
+                <div style="margin-top: 10px;">
+                    {% for step_item in item.steps %}
+                        <p>
+                            No.{{ step_item.step.order }}
+                            {{ step_item.step.name }}
 
-                        {% if step_item.is_completed %}
-                            合格
-                        {% else %}
-                            未
-                        {% endif %}
-                    </p>
-                {% endfor %}
-
-            </div>
+                            {% if step_item.is_completed %}
+                                合格
+                            {% else %}
+                                未
+                            {% endif %}
+                        </p>
+                    {% endfor %}
+                </div>
+            </details>
         {% endfor %}
     {% else %}
         <p>表示できるレシピがありません。</p>

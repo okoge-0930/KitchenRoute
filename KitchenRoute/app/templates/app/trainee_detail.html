@@ -5,54 +5,132 @@
 <div style="max-width: 420px; margin: 24px auto;">
 
     <h2 style="text-align: center;">
-        {{ trainee.username }} さんの進捗
+        {{ trainee.username }}さんの進捗
     </h2>
 
-    {% for recipe_item in recipe_progresses %}
-        <div style="border: 1px solid #999; padding: 12px; margin-bottom: 12px;">
+    <h3 style="text-align: left;">
+        ▪︎ 未完了（進捗低い順）
+    </h3>
 
-            <h3 style="text-align: center;">
-                {{ recipe_item.recipe.name }}
-        </h3>
-
-           {% for step_item in recipe_item.steps %}
-    <div style="margin-bottom: 10px;">
-
-        <div>
-            No.{{ step_item.step.order }}
-            {{ step_item.step.name }}
-
-            {% if step_item.is_completed %}
-                合格済み
-            {% else %}
-                未合格
-            {% endif %}
-        </div>
-
-        {% if step_item.is_completed and step_item.progress.recorded_by %}
-            <div style="font-size: 13px; color: #666;">
-                合格登録者：
-                {{ step_item.progress.recorded_by.username }}
-            </div>
-        {% endif %}
-
-        {% if not step_item.is_completed %}
-            <form
-                method="post"
-                action="{% url 'mark_step_passed' trainee.id step_item.step.id %}"
-                style="display: inline; margin-top: 4px;"
+    {% if incomplete_recipe_progresses %}
+        {% for recipe_item in incomplete_recipe_progresses %}
+            <details
+                open
+                style="
+                    border: 1px solid #999;
+                    margin-bottom: 12px;
+                "
             >
-                {% csrf_token %}
-                <button type="submit">
-                    合格にする
-                </button>
-            </form>
-        {% endif %}
+                <summary style="
+                    cursor: pointer;
+                    padding: 10px;
+                    font-weight: bold;
+                    background-color: white;
+                ">
+                    {{ recipe_item.recipe.name }}
+                </summary>
 
+                <div style="padding: 10px;">
+                    {% for step_item in recipe_item.steps %}
+                        <div style="
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            gap: 8px;
+                            margin-bottom: 10px;
+                        ">
+
+                            <div style="flex: 1;">
+                                <div>
+                                    No.{{ step_item.step.order }}
+                                    {{ step_item.step.name }}
+                                </div>
+
+                                {% if step_item.is_completed and step_item.progress.recorded_by %}
+                                    <div style="font-size: 13px; color: #666;">
+                                        記録者：
+                                        {{ step_item.progress.recorded_by.username }}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div style="min-width: 80px; text-align: right;">
+                                {% if step_item.is_completed %}
+                                    <button
+                                        disabled
+                                        style="
+                                            background-color: #ddd;
+                                            border: none;
+                                            padding: 8px 12px;
+                                            color: #666;
+                                        "
+                                    >
+                                        合格済
+                                    </button>
+                                {% else %}
+                                    <form
+                                        method="post"
+                                        action="{% url 'mark_step_passed' trainee.id step_item.step.id %}"
+                                        style="margin: 0;"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            style="
+                                                background-color: #f2c94c;
+                                                border: 1px solid #999;
+                                                padding: 8px 14px;
+                                            "
+                                        >
+                                            合格
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+
+                        </div>
+                    {% endfor %}
+                </div>
+            </details>
+        {% endfor %}
+    {% else %}
+        <p>
+            未完了のレシピはありません。
+        </p>
+    {% endif %}
+
+   {% if completed_recipe_progresses %}
+    <details style="margin-bottom: 12px;">
+        <summary style="
+            cursor: pointer;
+            font-size: 1.17em;
+            font-weight: bold;
+            margin-bottom: 12px;
+        ">
+            完了済み（{{ completed_recipe_count }}件）
+        </summary>
+
+        <div style="
+            border: 1px solid #999;
+            padding: 10px;
+        ">
+            {% for recipe_item in completed_recipe_progresses %}
+                <p>
+                    ・{{ recipe_item.recipe.name }}
+                </p>
+            {% endfor %}
         </div>
-    {% endfor %}
-        </div>
-    {% endfor %}
+    </details>
+{% else %}
+    <h3 style="text-align: left;">
+        ▪︎ 完了済み（0件）
+    </h3>
+
+    <p>
+        完了済みのレシピはありません。
+    </p>
+{% endif %}
 
 </div>
 

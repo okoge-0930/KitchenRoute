@@ -290,7 +290,8 @@ class TraineeDetailView(LoginRequiredMixin, TemplateView):
             organization=self.request.user.organization
         ).order_by("id")
 
-        recipe_progresses = []
+        incomplete_recipe_progresses = []
+        completed_recipe_progresses = []
 
         for recipe in recipes:
             steps = Step.objects.filter(
@@ -298,6 +299,8 @@ class TraineeDetailView(LoginRequiredMixin, TemplateView):
             ).order_by("order")
 
             step_items = []
+            completed_count = 0
+            total_count = steps.count()
 
             for step in steps:
                 progress = Progress.objects.filter(
@@ -307,6 +310,9 @@ class TraineeDetailView(LoginRequiredMixin, TemplateView):
 
                 is_completed = progress is not None
 
+                if is_completed:
+                    completed_count += 1
+
                 step_items.append(
                     {
                         "step": step,
@@ -315,15 +321,31 @@ class TraineeDetailView(LoginRequiredMixin, TemplateView):
                     }
                 )
 
-            recipe_progresses.append(
-                {
-                    "recipe": recipe,
-                    "steps": step_items,
-                }
+            progress_rate = (
+                round(completed_count / total_count * 100)
+                if total_count > 0
+                else 0
             )
 
+            recipe_progress = {
+                "recipe": recipe,
+                "steps": step_items,
+                "progress_rate": progress_rate,
+            }
+
+            if progress_rate == 100:
+                completed_recipe_progresses.append(recipe_progress)
+            else:
+                incomplete_recipe_progresses.append(recipe_progress)
+
+        incomplete_recipe_progresses.sort(
+            key=lambda item: item["progress_rate"]
+        )
+
         context["trainee"] = trainee
-        context["recipe_progresses"] = recipe_progresses
+        context["incomplete_recipe_progresses"] = incomplete_recipe_progresses
+        context["completed_recipe_progresses"] = completed_recipe_progresses
+        context["completed_recipe_count"] = len(completed_recipe_progresses)
 
         return context
     
