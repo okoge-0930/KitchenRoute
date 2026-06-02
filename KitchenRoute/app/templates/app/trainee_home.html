@@ -2,31 +2,75 @@
 
 {% block content %}
 
-    <h2 style="text-align: center;">
+<div style="
+    max-width: 380px;
+    margin: 24px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+">
+
+    <h2 style="
+        text-align: center;
+        font-size: 24px;
+    ">
         {{ user.username }}さんのタスク
     </h2>
 
     {% if task_list %}
         {% for task in task_list %}
-            <div style="border: 1px solid #999; padding: 10px; margin-bottom: 10px; width: 320px;">
+            <div style="
+                border: 1px solid #999;
+                padding: 12px;
+                margin: 0 auto 12px;
+                box-sizing: border-box;
+                width: 100%;
+            ">
 
-                <p>
-                 ■ {{ task.recipe.name }}
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 10px;
+                ">
+                    <strong style="
+                        font-size: 16px;
+                        word-break: break-word;
+                    ">
+                        ■ {{ task.recipe.name }}
+                    </strong>
 
-                        <a href="{% url 'trainee_task_detail' task.recipe.id %}" style="margin-left: 20px;">
-                            詳細
-                        </a>
-                </p>
+                    <button
+                        type="button"
+                        onclick="location.href='{% url 'trainee_task_detail' task.recipe.id %}'"
+                        style="
+                            background-color: #f2c94c;
+                            border: 1px solid #999;
+                            padding: 6px 12px;
+                            flex-shrink: 0;
+                        "
+                    >
+                        詳細
+                    </button>
+                </div>
 
-                 <p>
-                     No.{{ task.step.order }}
+                <p style="
+                    font-size: 14px;
+                    margin: 0;
+                    word-break: break-word;
+                ">
+                    No.{{ task.step.order }}
                     {{ task.step.name }}
                 </p>
 
             </div>
         {% endfor %}
     {% else %}
-         <p>現在進行中のタスクはありません。</p>
+        <p style="text-align: center; font-size: 14px;">
+            現在進行中のタスクはありません。
+        </p>
     {% endif %}
+
+</div>
 
 {% endblock %}

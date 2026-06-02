@@ -41,7 +41,12 @@
                 type="text"
                 name="organization_code"
                 required
-                style="width: 100%; height: 32px;"
+                autocomplete="off"
+                style="
+                    width: 100%;
+                    height: 32px;
+                    box-sizing: border-box;
+                "
             >
         </div>
 
@@ -51,7 +56,12 @@
                 type="email"
                 name="email"
                 required
-                style="width: 100%; height: 32px;"
+                autocomplete="off"
+                style="
+                    width: 100%;
+                    height: 32px;
+                    box-sizing: border-box;
+                "
             >
         </div>
 
@@ -61,17 +71,24 @@
                 type="password"
                 name="password"
                 required
-                style="width: 100%; height: 32px;"
+                autocomplete="current-password"
+                style="
+                    width: 100%;
+                    height: 32px;
+                    box-sizing: border-box;
+                "
             >
         </div>
 
-        <button type="submit" style="
-            width: 180px;
-            background-color: #f2c94c;
-            border: 1px solid #999;
-            padding: 10px;
-            font-size: 15px;
-        ">
+        <button
+            type="submit"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 8px 40px;
+                font-size: 15px;
+            "
+        >
             ログイン
         </button>
     </form>
@@ -104,4 +121,4 @@
 </div>
 
 </body>
-</html>ß
+</html>

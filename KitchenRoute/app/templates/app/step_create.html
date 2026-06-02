@@ -2,14 +2,26 @@
 
 {% block content %}
 
-<div style="max-width: 420px; margin: 24px auto;">
+<div style="
+    max-width: 380px;
+    margin: 24px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+">
 
-    <h2 style="text-align: center;">
+    <h2 style="
+        text-align: center;
+        font-size: 24px;
+    ">
         工程登録
     </h2>
 
-    <p>
-        レシピ名：{{ recipe.name }}
+    <p style="
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+    ">
+        レシピ名　{{ recipe.name }}
     </p>
 
     <form method="post">
@@ -20,9 +32,14 @@
         <input
             type="number"
             name="order"
+            min="1"
+            step="1"
+            inputmode="numeric"
+            required
             style="
                 width: 100%;
                 padding: 8px;
+                box-sizing: border-box;
             "
         >
 
@@ -33,15 +50,18 @@
         <input
             type="text"
             name="name"
+            required
             style="
                 width: 100%;
                 padding: 8px;
+                box-sizing: border-box;
             "
         >
 
         <div style="
-            margin-top: 16px;
+            margin-top: 48px;
             display: flex;
+            justify-content: center;
             gap: 12px;
         ">
 

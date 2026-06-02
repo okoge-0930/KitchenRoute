@@ -81,7 +81,15 @@
                     <div style="font-size: 12px;">アカウント</div>
                 </a>
 
-                <a href="{% url 'logout' %}" style="text-decoration: none; color: black; text-align: center;">
+                <a
+                    href="{% url 'logout' %}"
+                    onclick="return confirm('ログアウトしますか？')"
+                    style="
+                        text-decoration: none;
+                        color: black;
+                        text-align: center;
+                    "
+                >
                     <span class="material-symbols-outlined" style="font-size: 30px;">
                         logout
                  </span>
@@ -115,7 +123,15 @@
                     <div style="font-size: 12px;">アカウント</div>
                 </a>
 
-                <a href="{% url 'logout' %}" style="text-decoration: none; color: black; text-align: center;">
+                <a
+                    href="{% url 'logout' %}"
+                    onclick="return confirm('ログアウトしますか？')"
+                    style="
+                        text-decoration: none;
+                        color: black;
+                        text-align: center;
+                    "
+                >
                     <span class="material-symbols-outlined" style="font-size: 30px;">
                         logout
                     </span>

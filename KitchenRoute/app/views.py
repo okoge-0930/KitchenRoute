@@ -914,57 +914,89 @@ class AdminRegisterView(TemplateView):
             organization=organization,
         )
 
+        request.session["organization_code"] = (
+            organization.organization_code
+        )
+
+        request.session["organization_code"] = organization.organization_code
+
         return redirect(
             "admin_register_done"
         )
         
         
 class AdminRegisterDoneView(TemplateView):
-    template_name = (
-        "app/admin_register_done.html"
-    )
+    template_name = "app/admin_register_done.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["organization_code"] = self.request.session.get(
+            "organization_code"
+        )
+
+        return context
     
     
 class GeneralRegisterView(TemplateView):
     template_name = "app/general_register.html"
 
     def post(self, request, *args, **kwargs):
+        organization_code = request.POST.get("organization_code")
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
         password_confirm = request.POST.get("password_confirm")
 
+        organization = Organization.objects.filter(
+            organization_code=organization_code
+        ).first()
+
+        if organization is None:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error": "組織コードが正しくありません。",
+                },
+            )
+
         if password != password_confirm:
             return render(
                 request,
                 self.template_name,
-                {"error": "パスワードが一致しません。"},
+                {
+                    "error": "パスワードが一致しません。",
+                },
             )
-            
+
         try:
             validate_password(password)
         except ValidationError as error:
             return render(
                 request,
                 self.template_name,
-             {
-                "error":
-                 error.messages[0],
-             },
+                {
+                    "error": error.messages[0],
+                },
             )
 
         if User.objects.filter(username=username).exists():
             return render(
                 request,
                 self.template_name,
-                {"error": "この名前はすでに登録されています。"},
+                {
+                    "error": "この名前はすでに登録されています。",
+                },
             )
 
         if User.objects.filter(email=email).exists():
             return render(
                 request,
                 self.template_name,
-                {"error": "このメールアドレスはすでに登録されています。"},
+                {
+                    "error": "このメールアドレスはすでに登録されています。",
+                },
             )
 
         User.objects.create_user(
@@ -972,6 +1004,7 @@ class GeneralRegisterView(TemplateView):
             email=email,
             password=password,
             role=0,
+            organization=organization,
         )
 
         return redirect("general_register_done")

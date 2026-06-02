@@ -2,28 +2,68 @@
 
 {% block content %}
 
-    <h2 style="text-align: center;">
+<div style="
+    max-width: 380px;
+    margin: 24px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+">
+
+    <h2 style="
+        text-align: center;
+        font-size: 24px;
+    ">
         {{ user.username }}さんのタスク
     </h2>
-    
-    <p>{{ recipe.name }} の進捗　{{ progress_rate }}%</p>
+
+    <p style="
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 24px;
+    ">
+        {{ recipe.name }} の進捗　{{ progress_rate }}%
+    </p>
 
     {% if steps %}
         {% for step in steps %}
-            <p>
-                No.{{ step.order }}
-                {{ step.name }}
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 12px;
+                font-size: 14px;
+            ">
+                <div style="
+                    word-break: break-word;
+                ">
+                    No.{{ step.order }}
+                    {{ step.name }}
+                </div>
 
-                {% if step.id in completed_step_ids %}
-                    合格
-                {% else %}
-                    未
-                {% endif %}
-            </p>
+                <div style="
+                    min-width: 40px;
+                    text-align: right;
+                    font-weight: bold;
+                ">
+                    {% if step.id in completed_step_ids %}
+                        合格
+                    {% else %}
+                        未
+                    {% endif %}
+                </div>
+            </div>
         {% endfor %}
     {% else %}
-        <p>登録された工程はありません。</p>
+        <p style="
+            text-align: center;
+            font-size: 14px;
+        ">
+            登録された工程はありません。
+        </p>
     {% endif %}
 
+</div>
 
 {% endblock %}

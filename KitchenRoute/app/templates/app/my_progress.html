@@ -2,22 +2,46 @@
 
 {% block content %}
 
-<div style="max-width: 420px; margin: 24px auto;">
+<div style="
+    max-width: 380px;
+    margin: 24px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+">
 
-    <h2 style="text-align: center;">
+    <h2 style="
+        text-align: center;
+        font-size: 24px;
+    ">
         {{ user.username }}さんの進捗
     </h2>
 
-    <p>全体進捗　{{ overall_progress_rate }}%</p>
+    <p style="
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 20px;
+    ">
+        全体進捗　{{ overall_progress_rate }}%
+    </p>
 
-    <h3 style="text-align: left;">
+    <h3 style="
+        text-align: left;
+        font-size: 17px;
+        margin-bottom: 6px;
+    ">
         ▪︎ 直近30日の成長
     </h3>
 
-    <div style="border: 1px solid #999; padding: 10px; margin-bottom: 12px;">
+    <div style="
+        border: 1px solid #999;
+        padding: 10px;
+        margin-bottom: 14px;
+        font-size: 14px;
+    ">
         {% if recent_recipe_progresses %}
             {% for item in recent_recipe_progresses %}
-                <p>
+                <p style="margin: 6px 0;">
                     {{ item.recipe.name }}
                     No.{{ item.oldest_progress.step.order }}
                     →
@@ -25,11 +49,17 @@
                 </p>
             {% endfor %}
         {% else %}
-            <p>直近30日以内に合格した工程はありません。</p>
+            <p style="margin: 6px 0;">
+                直近30日以内に合格した工程はありません。
+            </p>
         {% endif %}
     </div>
 
-    <h3 style="text-align: left;">
+    <h3 style="
+        text-align: left;
+        font-size: 17px;
+        margin-bottom: 6px;
+    ">
         ▪︎ レシピごとの進捗（低い順）
     </h3>
 
@@ -39,30 +69,46 @@
                 border: 1px solid #999;
                 padding: 10px;
                 margin-bottom: 12px;
+                font-size: 14px;
             ">
                 <summary style="cursor: pointer;">
                     <strong>{{ item.recipe.name }}</strong>
                     {{ item.progress_rate }}%
                 </summary>
 
-                <div style="margin-top: 10px;">
+                <div style="margin-top: 8px;">
                     {% for step_item in item.steps %}
-                        <p>
-                            No.{{ step_item.step.order }}
-                            {{ step_item.step.name }}
+                        <div style="
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 12px;
+                            margin-bottom: 8px;
+                        ">
+                            <span style="word-break: break-word;">
+                                No.{{ step_item.step.order }}
+                                {{ step_item.step.name }}
+                            </span>
 
-                            {% if step_item.is_completed %}
-                                合格
-                            {% else %}
-                                未
-                            {% endif %}
-                        </p>
+                            <span style="
+                                min-width: 36px;
+                                text-align: right;
+                                font-weight: bold;
+                            ">
+                                {% if step_item.is_completed %}
+                                    合格
+                                {% else %}
+                                    未
+                                {% endif %}
+                            </span>
+                        </div>
                     {% endfor %}
                 </div>
             </details>
         {% endfor %}
     {% else %}
-        <p>表示できるレシピがありません。</p>
+        <p style="text-align: center; font-size: 14px;">
+            表示できるレシピがありません。
+        </p>
     {% endif %}
 
 </div>

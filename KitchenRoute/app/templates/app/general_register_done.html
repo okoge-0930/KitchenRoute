@@ -2,36 +2,46 @@
 
 {% block content %}
 
-<div style="max-width: 420px; margin: 24px auto;">
+<div style="
+    max-width: 360px;
+    margin: 60px auto;
+    text-align: center;
+    padding: 0 24px;
+    box-sizing: border-box;
+">
 
-
-    <p>
+    <h2 style="
+        font-size: 28px;
+        margin-bottom: 24px;
+    ">
         アカウント登録が<br>
         完了しました
+    </h2>
+
+    <p style="
+        font-size: 18px;
+        line-height: 1.8;
+    ">
+        現在は「新人」として登録されています。<br>
+        「新人」として利用する場合は<br>
+        そのままログインしてください。
+
     </p>
 
-    <p>
-        現在は「新人」として登録されています。
-    </p>
-
-    <p>
-        「新人」として利用する場合は、<br>
-        共有された組織コードを入力の上、<br>
-        再度ログインしてください。
-    </p>
-
-    <p>
-        「教育者」として利用する場合は、<br>
+    <p style="
+        line-height: 1.8;
+        margin-top: 24px;
+    ">
+        「教育者」として利用する場合は<br>
         管理者による教育者権限の設定が必要です。<br>
-        権限設定後、共有された組織コードを入力の上、<br>
-        再度ログインしてください。
+        権限設定後、ログインして利用してください。
     </p>
 
-    <p>
+    <div style="margin-top: 40px;">
         <a href="{% url 'login' %}">
             ログイン画面へ
         </a>
-    </p>
+    </div>
 
 </div>
 

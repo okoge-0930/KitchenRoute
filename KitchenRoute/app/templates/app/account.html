@@ -2,93 +2,138 @@
 
 {% block content %}
 
-<div style="max-width: 380px; margin: 40px auto;">
+<div style="
+    max-width: 380px;
+    margin: 40px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+">
+
+    <h2 style="
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+    ">
+        アカウント情報
+    </h2>
+
+    {% if user.organization %}
+        <p style="
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 8px;
+        ">
+            所属組織名：
+            {{ user.organization.name }}
+        </p>
+    {% endif %}
+
+    {% if user.role == 2 and user.organization %}
+        <p style="
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+        ">
+            組織コード：
+            {{ user.organization.organization_code }}
+        </p>
+    {% endif %}
 
     <div style="
-        border: 1px solid #ccc;
-        padding: 24px;
-        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 12px;
     ">
-
-        <h2 style="text-align: center;">
-            アカウント情報
-        </h2>
-
-        <br>
-
-        {% if user.organization %}
-            <p>
-                所属組織名：
-                {{ user.organization.name }}
-            </p>
-        {% endif %}
-
-        {% if user.role == 2 and user.organization %}
-            <p>
-                組織コード：
-                {{ user.organization.organization_code }}
-            </p>
-        {% endif %}
-
-        <br>
-
-        <div style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        ">
-            <div>
-                <div>名前</div>
-                <strong>{{ user.username }}</strong>
+        <div style="word-break: break-word;">
+            <div style="font-size: 14px;">
+                名前
             </div>
 
-            <button
-                type="button"
-                onclick="location.href='{% url 'account_username_update' %}'"
-            >
-                変更する
-            </button>
+            <strong style="font-size: 16px;">
+                {{ user.username }}
+            </strong>
         </div>
 
-        <div style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-        ">
-            <div>
-                <div>メールアドレス</div>
-                <strong>{{ user.email }}</strong>
-            </div>
-
-            <button
-                type="button"
-                onclick="location.href='{% url 'account_email_update' %}'"
-            >
-                変更する
-            </button>
-        </div>
-
-        <div style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        ">
-            <div>
-                <div>現在のパスワード</div>
-                <strong>••••••••</strong>
-            </div>
-
-           <button
-                type="button"
-                onclick="location.href='{% url 'account_password_change' %}'"
-            >
-                変更する
-            </button>
-        </div>
-
+        <button
+            type="button"
+            onclick="location.href='{% url 'account_username_update' %}'"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 6px 12px;
+                flex-shrink: 0;
+            "
+        >
+            変更する
+        </button>
     </div>
+
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 12px;
+    ">
+        <div style="word-break: break-word;">
+            <div style="font-size: 14px;">
+                メールアドレス
+            </div>
+
+            <strong style="
+                font-size: 16px;
+                word-break: break-all;
+            ">
+                {{ user.email }}
+            </strong>
+        </div>
+
+        <button
+            type="button"
+            onclick="location.href='{% url 'account_email_update' %}'"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 6px 12px;
+                flex-shrink: 0;
+            "
+        >
+            変更する
+        </button>
+    </div>
+
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+    ">
+        <div>
+            <div style="font-size: 14px;">
+                現在のパスワード
+            </div>
+
+            <strong style="font-size: 16px;">
+                ••••••••
+            </strong>
+        </div>
+
+        <button
+            type="button"
+            onclick="location.href='{% url 'account_password_change' %}'"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 6px 12px;
+                flex-shrink: 0;
+            "
+        >
+            変更する
+        </button>
+    </div>
+
 </div>
 
 {% endblock %}
