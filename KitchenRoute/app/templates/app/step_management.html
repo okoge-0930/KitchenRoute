@@ -88,8 +88,10 @@
                             border: 1px solid #999;
                             padding: 4px 10px;
                         "
-                        onclick="return confirm('⚠️警告\nレシピ削除をすると登録された全工程も削除されます。\n本当に削除しますか？')"
-                    >
+                            data-confirm-message="⚠️警告
+                            レシピ削除をすると登録された全工程も削除されます。
+                            本当に削除しますか？"
+                        >
                         削除
                     </button>
                 </form>
@@ -149,8 +151,10 @@
                                     border: 1px solid #999;
                                     padding: 4px 10px;
                                 "
-                                onclick="return confirm('⚠️警告\nこの操作は元に戻せません。\n工程を削除しますか？')"
-                            >
+                                    data-confirm-message="⚠️警告
+                                    この操作は元に戻せません。
+                                    工程を削除しますか？"                            
+                                >
                                 削除
                             </button>
                         </form>

@@ -10,6 +10,7 @@ from django.views import View
 import uuid
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.contrib import messages
 
 
 class LoginView(TemplateView):
@@ -528,6 +529,11 @@ class StepDeleteView(TemplateView):
         recipe_id = step.recipe.id
         step.delete()
 
+        messages.success(
+            request,
+            "工程が削除されました。"
+        )
+
         return redirect(
             "step_management",
             recipe_id=recipe_id,
@@ -543,6 +549,11 @@ class RecipeDeleteView(TemplateView):
         )
 
         recipe.delete()
+
+        messages.success(
+            request,
+            "レシピが削除されました。"
+        )
 
         return redirect("skill_management")
     

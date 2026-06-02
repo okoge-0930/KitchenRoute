@@ -126,9 +126,10 @@
                             style="margin: 0;"
                         >
                             {% csrf_token %}
-                            <button
+                           <button
                                 type="submit"
-                                onclick="return confirm('{{ summary.user.username }}さんを教育者へ変更しますか？')"
+                                data-confirm-message="{{ summary.user.username }}さんを教育者へ変更しますか？"
+                                data-confirm-type="warning"
                                 style="
                                     background-color: #f2c94c;
                                     border: 1px solid #999;
@@ -136,7 +137,7 @@
                                 "
                             >
                                 教育者に変更
-                            </button>
+                            </button>                               
                         </form>
                     {% elif summary.user.role == 1 %}
                         <form
@@ -147,7 +148,8 @@
                             {% csrf_token %}
                             <button
                                 type="submit"
-                                onclick="return confirm('{{ summary.user.username }}さんを新人へ戻しますか？')"
+                                data-confirm-message="{{ summary.user.username }}さんを新人へ戻しますか？"
+                                data-confirm-type="warning"
                                 style="
                                     background-color: #f2c94c;
                                     border: 1px solid #999;
