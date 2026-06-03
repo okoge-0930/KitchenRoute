@@ -115,14 +115,14 @@ urlpatterns = [
     ),
     name="password_reset",
 ),
-path(
+    path(
     "password-reset/done/",
     auth_views.PasswordResetDoneView.as_view(
         template_name="app/password_reset_done.html",
     ),
     name="password_reset_done",
 ),
-path(
+    path(
     "reset/<uidb64>/<token>/",
     auth_views.PasswordResetConfirmView.as_view(
         template_name="app/password_reset_confirm.html",
@@ -131,25 +131,25 @@ path(
     name="password_reset_confirm",
 ),
 
-path(
+    path(
     "reset/done/",
     auth_views.PasswordResetCompleteView.as_view(
         template_name="app/password_reset_complete.html",
     ),
     name="password_reset_complete",
 ),
-path(
+    path(
     "account/username/update/",
     AccountUsernameUpdateView.as_view(),
     name="account_username_update",
 ),
 
-path(
+    path(
     "account/email/update/",
     AccountEmailUpdateView.as_view(),
     name="account_email_update",
 ),
-path(
+    path(
     "account/password/change/",
     auth_views.PasswordChangeView.as_view(
         template_name="app/account_password_change.html",

@@ -367,8 +367,18 @@ class MarkStepPassedView(TemplateView):
         return redirect("trainee_detail", user_id=trainee.id)    
 
 
-class HomeView(TemplateView):
-    template_name = "app/base.html"
+class HomeView(View):
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("login")
+
+        if request.user.role == 0:
+            return redirect("trainee_home")
+
+        if request.user.role == 1:
+            return redirect("educator_home")
+
+        return redirect("admin_home")
     
     
 class SkillManagementView(LoginRequiredMixin, TemplateView):
