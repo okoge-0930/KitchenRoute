@@ -368,7 +368,7 @@ class MarkStepPassedView(TemplateView):
 
 
 class HomeView(TemplateView):
-    template_name = "app/home.html"
+    template_name = "app/base.html"
     
     
 class SkillManagementView(LoginRequiredMixin, TemplateView):
