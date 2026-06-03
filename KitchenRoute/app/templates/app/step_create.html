@@ -27,7 +27,7 @@
     <form method="post">
         {% csrf_token %}
 
-        <label>順序</label><br>
+        <label>順序（半角数字入力）</label><br>
 
         <input
             type="number"
@@ -66,6 +66,7 @@
         ">
 
             <button
+                class="kr-button"
                 type="submit"
                 style="
                     background-color: #f2c94c;
@@ -77,6 +78,7 @@
             </button>
 
             <button
+                class="kr-button kr-button--cancel"
                 type="button"
                 onclick="location.href='{% url 'step_management' recipe.id %}'"
                 style="

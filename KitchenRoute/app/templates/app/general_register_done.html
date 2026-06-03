@@ -19,26 +19,37 @@
     </h2>
 
     <p style="
-        font-size: 18px;
+        font-size: 17px;
         line-height: 1.8;
     ">
-        現在は「新人」として登録されています。<br>
-        「新人」として利用する場合は<br>
-        そのままログインしてください。
+        現在は「新人」として登録されています。
+    </p>
 
+    <p style="
+        font-size: 17px;
+        line-height: 1.8;
+    ">
+        「新人」として利用する場合はそのままログインしてください。
     </p>
 
     <p style="
         line-height: 1.8;
         margin-top: 24px;
     ">
-        「教育者」として利用する場合は<br>
-        管理者による教育者権限の設定が必要です。<br>
+        「教育者」として利用する場合は管理者による教育者権限の設定が必要です。
+    </p>
+
+    <p style="
+        line-height: 1.8;
+    ">
         権限設定後、ログインして利用してください。
     </p>
 
     <div style="margin-top: 40px;">
-        <a href="{% url 'login' %}">
+        <a
+            class="kr-action-button"
+            href="{% url 'login' %}"
+        >
             ログイン画面へ
         </a>
     </div>

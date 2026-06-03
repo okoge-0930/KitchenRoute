@@ -2,32 +2,54 @@
 
 {% block content %}
 
-<div style="max-width: 420px; margin: 24px auto;">
+<div class="kr-page" style="
+    max-width: 380px;
+    margin: 24px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+">
 
-    <h2 style="text-align: center;">
+    <h2 style="
+        text-align: center;
+        font-size: 24px;
+    ">
         レシピ編集
     </h2>
 
     <form method="post">
         {% csrf_token %}
 
-        <p>レシピ名</p>
+        {% if redirect_to %}
+            <input
+                type="hidden"
+                name="next"
+                value="{{ redirect_to }}"
+            >
+        {% endif %}
+
+        <label>レシピ名</label><br>
 
         <input
             type="text"
             name="name"
             value="{{ recipe.name }}"
             required
-            style="width: 100%; padding: 8px;"
+            style="
+                width: 100%;
+                padding: 8px;
+                box-sizing: border-box;
+            "
         >
 
         <div style="
-            margin-top: 16px;
+            margin-top: 48px;
             display: flex;
+            justify-content: center;
             gap: 12px;
         ">
 
             <button
+                class="kr-button"
                 type="submit"
                 style="
                     background-color: #f2c94c;
@@ -39,6 +61,7 @@
             </button>
 
             <button
+                class="kr-button kr-button--cancel"
                 type="button"
                 onclick="history.back()"
                 style="

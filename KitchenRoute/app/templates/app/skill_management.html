@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div style="max-width: 420px; margin: 24px auto;">
+<div class="kr-page" style="max-width: 420px; margin: 24px auto;">
 
     <h2 style="text-align: center;">
         スキル管理
@@ -12,22 +12,9 @@
         レシピ一覧
     </h3>
 
-    {% if recipes %}
-        {% for recipe in recipes %}
-            <p>
-                <a href="{% url 'step_management' recipe.id %}">
-                    ＞ {{ recipe.name }}
-                </a>
-            </p>
-        {% endfor %}
-    {% else %}
-        <p style="text-align: center;">
-            登録されたレシピはありません。
-        </p>
-    {% endif %}
-
-    <div style="text-align: center; margin-top: 24px;">
+    <div style="text-align: center; margin: 12px 0 24px;">
         <button
+            class="kr-button"
             type="button"
             onclick="location.href='{% url 'recipe_create' %}'"
             style="
@@ -39,6 +26,25 @@
             レシピを追加
         </button>
     </div>
+
+    {% if recipes %}
+        {% for recipe in recipes %}
+            <p class="kr-card" style="
+                border: 1px solid #999;
+                padding: 12px;
+                margin: 0 auto 12px;
+                font-size: 14px;
+            ">
+                <a href="{% url 'step_management' recipe.id %}">
+                    ＞ {{ recipe.name }}
+                </a>
+            </p>
+        {% endfor %}
+    {% else %}
+        <p style="text-align: center;">
+            登録されたレシピはありません。
+        </p>
+    {% endif %}
 
 </div>
 

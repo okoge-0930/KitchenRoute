@@ -1,8 +1,10 @@
 from django.contrib.auth.views import LoginView as DjangoLoginView
+from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView
 from .models import Progress, Recipe, Step, User, Organization
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from datetime import timedelta
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -351,18 +353,51 @@ class TraineeDetailView(LoginRequiredMixin, TemplateView):
         return context
     
 
-class MarkStepPassedView(TemplateView):
+class MarkStepPassedView(LoginRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
-        trainee = get_object_or_404(User, id=kwargs["user_id"])
-        step = get_object_or_404(Step, id=kwargs["step_id"])
+        trainee = get_object_or_404(
+            User,
+            id=kwargs["user_id"],
+            organization=request.user.organization,
+        )
+        step = get_object_or_404(
+            Step,
+            id=kwargs["step_id"],
+            recipe__organization=request.user.organization,
+        )
 
-        Progress.objects.get_or_create(
+        progress, created = Progress.objects.get_or_create(
             trainee=trainee,
             step=step,
             defaults={
                 "recorded_by": request.user,
             },
         )
+
+        total_count = Step.objects.filter(
+            recipe=step.recipe
+        ).count()
+        completed_count = Progress.objects.filter(
+            trainee=trainee,
+            step__recipe=step.recipe,
+        ).count()
+        progress_rate = (
+            round(completed_count / total_count * 100)
+            if total_count > 0
+            else 0
+        )
+
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return JsonResponse(
+                {
+                    "progress_rate": progress_rate,
+                    "recorded_by": (
+                        progress.recorded_by.username
+                        if progress.recorded_by
+                        else ""
+                    ),
+                }
+            )
 
         return redirect("trainee_detail", user_id=trainee.id)    
 
@@ -437,23 +472,43 @@ class RecipeUpdateView(LoginRequiredMixin, View):
     def get(self, request, recipe_id):
         recipe = get_object_or_404(
             Recipe,
-            id=recipe_id
+            id=recipe_id,
+            organization=request.user.organization,
         )
+        redirect_to = request.GET.get("next", "")
+
+        if not url_has_allowed_host_and_scheme(
+            redirect_to,
+            allowed_hosts={request.get_host()},
+        ):
+            redirect_to = ""
 
         return render(
             request,
             "app/recipe_update.html",
-            {"recipe": recipe},
+            {
+                "recipe": recipe,
+                "redirect_to": redirect_to,
+            },
         )
 
     def post(self, request, recipe_id):
         recipe = get_object_or_404(
             Recipe,
-            id=recipe_id
+            id=recipe_id,
+            organization=request.user.organization,
         )
 
         recipe.name = request.POST.get("name")
         recipe.save()
+
+        redirect_to = request.POST.get("next", "")
+
+        if url_has_allowed_host_and_scheme(
+            redirect_to,
+            allowed_hosts={request.get_host()},
+        ):
+            return redirect(redirect_to)
 
         return redirect("skill_management")
         
@@ -528,7 +583,19 @@ class StepUpdateView(TemplateView):
         return redirect("step_management", recipe_id=step.recipe.id)
     
     
-class StepDeleteView(TemplateView):
+class StepDeleteView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        step = get_object_or_404(
+            Step,
+            id=self.kwargs["step_id"],
+            recipe__organization=request.user.organization,
+        )
+
+        return redirect(
+            "step_management",
+            recipe_id=step.recipe.id,
+        )
+
     def post(self, request, *args, **kwargs):
         step = get_object_or_404(
             Step,
@@ -549,8 +616,17 @@ class StepDeleteView(TemplateView):
             recipe_id=recipe_id,
         )
         
-        
-class RecipeDeleteView(TemplateView):
+
+class RecipeDeleteView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        get_object_or_404(
+            Recipe,
+            id=self.kwargs["recipe_id"],
+            organization=request.user.organization,
+        )
+
+        return redirect("skill_management")
+
     def post(self, request, *args, **kwargs):
         recipe = get_object_or_404(
             Recipe,
@@ -568,10 +644,14 @@ class RecipeDeleteView(TemplateView):
         return redirect("skill_management")
     
     
-class ChangeUserRoleView(TemplateView):
+class ChangeUserRoleView(LoginRequiredMixin, View):
 
     def post(self, request, user_id, role):
-        user = User.objects.get(id=user_id)
+        user = get_object_or_404(
+            User,
+            id=user_id,
+            organization=request.user.organization,
+        )
 
         user.role = role
         user.save()

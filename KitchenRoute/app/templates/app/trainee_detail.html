@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div style="max-width: 420px; margin: 24px auto;">
+<div class="kr-page" style="max-width: 420px; margin: 24px auto;">
 
     <h2 style="text-align: center;">
         {{ trainee.username }}さんの進捗
@@ -15,7 +15,8 @@
     {% if incomplete_recipe_progresses %}
         {% for recipe_item in incomplete_recipe_progresses %}
             <details
-                open
+                class="kr-card"
+                data-recipe-progress-card
                 style="
                     border: 1px solid #999;
                     margin-bottom: 12px;
@@ -27,7 +28,29 @@
                     font-weight: bold;
                     background-color: white;
                 ">
-                    {{ recipe_item.recipe.name }}
+                    <span style="
+                        display: inline-flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        gap: 12px;
+                        width: calc(100% - 24px);
+                        vertical-align: middle;
+                    ">
+                        <span style="word-break: break-word;">
+                            {{ recipe_item.recipe.name }}
+                        </span>
+
+                        <span
+                            data-progress-rate
+                            style="
+                                flex-shrink: 0;
+                                font-size: 14px;
+                                font-weight: normal;
+                            "
+                        >
+                            {{ recipe_item.progress_rate }}%
+                        </span>
+                    </span>
                 </summary>
 
                 <div style="padding: 10px;">
@@ -38,7 +61,7 @@
                             align-items: center;
                             gap: 8px;
                             margin-bottom: 10px;
-                        ">
+                        " data-step-row>
 
                             <div style="flex: 1;">
                                 <div>
@@ -46,17 +69,29 @@
                                     {{ step_item.step.name }}
                                 </div>
 
-                                {% if step_item.is_completed and step_item.progress.recorded_by %}
-                                    <div style="font-size: 13px; color: #666;">
-                                        記録者：
-                                        {{ step_item.progress.recorded_by.username }}
-                                    </div>
-                                {% endif %}
+                                <div
+                                    data-recorded-by
+                                    style="
+                                        font-size: 13px;
+                                        color: #666;
+                                        {% if not step_item.is_completed or not step_item.progress.recorded_by %}
+                                            display: none;
+                                        {% endif %}
+                                    "
+                                >
+                                    記録者：
+                                    <span data-recorded-by-name>
+                                        {% if step_item.progress.recorded_by %}
+                                            {{ step_item.progress.recorded_by.username }}
+                                        {% endif %}
+                                    </span>
+                                </div>
                             </div>
 
                             <div style="min-width: 80px; text-align: right;">
                                 {% if step_item.is_completed %}
                                     <button
+                                        class="kr-button kr-button--secondary"
                                         disabled
                                         style="
                                             background-color: #ddd;
@@ -71,12 +106,15 @@
                                     <form
                                         method="post"
                                         action="{% url 'mark_step_passed' trainee.id step_item.step.id %}"
+                                        data-pass-form
                                         style="margin: 0;"
                                     >
                                         {% csrf_token %}
 
                                         <button
+                                            class="kr-button"
                                             type="submit"
+                                            data-pass-button
                                             style="
                                                 background-color: #f2c94c;
                                                 border: 1px solid #999;
@@ -100,8 +138,7 @@
         </p>
     {% endif %}
 
-   {% if completed_recipe_progresses %}
-    <details style="margin-bottom: 12px;">
+    <details class="kr-card" style="margin-bottom: 12px;">
         <summary style="
             cursor: pointer;
             font-size: 1.17em;
@@ -111,6 +148,7 @@
             完了済み（{{ completed_recipe_count }}件）
         </summary>
 
+        {% if completed_recipe_progresses %}
         <div style="
             border: 1px solid #999;
             padding: 10px;
@@ -121,17 +159,64 @@
                 </p>
             {% endfor %}
         </div>
+        {% else %}
+            <p>
+                完了済みのレシピはありません。
+            </p>
+        {% endif %}
     </details>
-{% else %}
-    <h3 style="text-align: left;">
-        ▪︎ 完了済み（0件）
-    </h3>
-
-    <p>
-        完了済みのレシピはありません。
-    </p>
-{% endif %}
 
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll("[data-pass-form]").forEach(function (form) {
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                const button = form.querySelector("[data-pass-button]");
+                const stepRow = form.closest("[data-step-row]");
+                const recipeCard = form.closest("[data-recipe-progress-card]");
+                const progressRate = recipeCard.querySelector("[data-progress-rate]");
+                const recordedBy = stepRow.querySelector("[data-recorded-by]");
+                const recordedByName = stepRow.querySelector("[data-recorded-by-name]");
+                const formData = new FormData(form);
+
+                button.disabled = true;
+
+                fetch(form.action, {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                })
+                    .then(function (response) {
+                        if (!response.ok) {
+                            throw new Error("合格登録に失敗しました。");
+                        }
+
+                        return response.json();
+                    })
+                    .then(function (data) {
+                        progressRate.textContent = data.progress_rate + "%";
+                        if (data.recorded_by) {
+                            recordedByName.textContent = data.recorded_by;
+                            recordedBy.style.display = "block";
+                        }
+                        button.textContent = "合格済";
+                        button.classList.add("kr-button--secondary");
+                        button.style.backgroundColor = "#ddd";
+                        button.style.border = "none";
+                        button.style.color = "#666";
+                    })
+                    .catch(function () {
+                        button.disabled = false;
+                        alert("合格登録に失敗しました。時間をおいて再度お試しください。");
+                    });
+            });
+        });
+    });
+</script>
 
 {% endblock %}

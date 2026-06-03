@@ -1,14 +1,16 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>ホーム | KitchenRoute</title>
-</head>
-<body>
+{% extends "app/base.html" %}
+
+{% block content %}
+
+<div class="kr-page" style="
+    max-width: 380px;
+    margin: 24px auto;
+">
 
     <h2 style="text-align: center;">
         教育者ホーム（仮）
     </h2>
+
     <p>スタッフ一覧</p>
 
     <ul>
@@ -17,6 +19,10 @@
         <li>鈴木さん（進捗80%）</li>
     </ul>
 
-    <button>詳細を見る</button>
-</body>
-</html>
+    <button class="kr-button" type="button">
+        詳細を見る
+    </button>
+
+</div>
+
+{% endblock %}

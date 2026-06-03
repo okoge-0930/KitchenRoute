@@ -2,18 +2,20 @@
 
 {% block content %}
 
-<div style="
-    max-width: 380px;
+<div class="kr-page" style="
+    max-width: 420px;
     margin: 24px auto;
     padding: 0 16px;
     box-sizing: border-box;
 ">
 
     <button
+        class="kr-button kr-button--secondary"
         type="button"
         onclick="location.href='{% url 'skill_management' %}'"
         style="
             background-color: #ddd;
+            color: #333;
             border: 1px solid #999;
             padding: 6px 12px;
             margin-bottom: 8px;
@@ -37,71 +39,95 @@
         工程一覧
     </h3>
 
-    <div style="
+    <div class="kr-card" style="
         border: 1px solid #999;
         padding: 12px;
         margin-bottom: 16px;
         box-sizing: border-box;
+        text-align: center;
     ">
         <div style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
+            font-size: 15px;
+            margin-bottom: 6px;
         ">
-            <strong style="
-                font-size: 18px;
-                word-break: break-word;
-            ">
-                レシピ名　{{ recipe.name }}
-            </strong>
+            レシピ名
+        </div>
 
-            <div style="
-                display: flex;
-                gap: 8px;
-                flex-shrink: 0;
-            ">
+        <strong style="
+            display: block;
+            font-size: 18px;
+            line-height: 1.4;
+            word-break: break-word;
+        ">
+            {{ recipe.name }}
+        </strong>
+
+        <div style="
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        ">
+            <button
+                class="kr-button"
+                type="button"
+                onclick="location.href='{% url 'recipe_update' recipe.id %}?next={{ request.get_full_path|urlencode }}'"
+                style="
+                    background-color: #f2c94c;
+                    border: 1px solid #999;
+                    padding: 4px 10px;
+                "
+            >
+                編集
+            </button>
+
+            <form
+                method="post"
+                action="{% url 'recipe_delete' recipe.id %}"
+                style="margin: 0;"
+            >
+                {% csrf_token %}
+
                 <button
-                    type="button"
-                    onclick="location.href='{% url 'recipe_update' recipe.id %}'"
+                    class="kr-button kr-button--danger"
+                    type="submit"
                     style="
-                        background-color: #f2c94c;
+                        background-color: #eb5757;
+                        color: white;
                         border: 1px solid #999;
                         padding: 4px 10px;
                     "
-                >
-                    編集
+                        data-confirm-message="⚠️警告
+                        レシピ削除をすると登録された全工程も削除されます。
+                        本当に削除しますか？"
+                    >
+                    削除
                 </button>
-
-                <form
-                    method="post"
-                    action="{% url 'recipe_delete' recipe.id %}"
-                    style="margin: 0;"
-                >
-                    {% csrf_token %}
-
-                    <button
-                        type="submit"
-                        style="
-                            background-color: #eb5757;
-                            color: white;
-                            border: 1px solid #999;
-                            padding: 4px 10px;
-                        "
-                            data-confirm-message="⚠️警告
-                            レシピ削除をすると登録された全工程も削除されます。
-                            本当に削除しますか？"
-                        >
-                        削除
-                    </button>
-                </form>
-            </div>
+            </form>
         </div>
+    </div>
+
+    <div style="
+        text-align: center;
+        margin-bottom: 20px;
+    ">
+        <button
+            class="kr-button"
+            type="button"
+            onclick="location.href='{% url 'step_create' recipe.id %}'"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 8px 16px;
+            "
+        >
+            工程を追加
+        </button>
     </div>
 
     {% if steps %}
         {% for step in steps %}
-            <div style="
+            <div class="kr-card" style="
                 border: 1px solid #999;
                 padding: 10px;
                 margin-bottom: 10px;
@@ -125,6 +151,7 @@
                         flex-shrink: 0;
                     ">
                         <button
+                            class="kr-button"
                             type="button"
                             onclick="location.href='{% url 'step_update' step.id %}'"
                             style="
@@ -144,6 +171,7 @@
                             {% csrf_token %}
 
                             <button
+                                class="kr-button kr-button--danger"
                                 type="submit"
                                 style="
                                     background-color: #eb5757;
@@ -167,23 +195,6 @@
             登録された工程はありません。
         </p>
     {% endif %}
-
-    <div style="
-        text-align: center;
-        margin-top: 24px;
-    ">
-        <button
-            type="button"
-            onclick="location.href='{% url 'step_create' recipe.id %}'"
-            style="
-                background-color: #f2c94c;
-                border: 1px solid #999;
-                padding: 8px 16px;
-            "
-        >
-            工程を追加
-        </button>
-    </div>
 
 </div>
 

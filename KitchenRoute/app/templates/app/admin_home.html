@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div style="
+<div class="kr-page" style="
     max-width: 380px;
     margin: 24px auto;
     padding: 0 16px;
@@ -19,7 +19,8 @@
     <form method="get" style="margin-bottom: 20px;">
 
         <div style="
-            width: 240px;
+            width: 100%;
+            max-width: 300px;
             margin: 0 auto;
         ">
 
@@ -31,15 +32,26 @@
                 ユーザー検索
             </div>
 
-            <div style="text-align: center;">
+            <div style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            ">
                 <input
                     type="text"
                     name="keyword"
                     value="{{ search_keyword }}"
-                    style="height: 28px; width: 180px;"
+                    style="
+                        height: 40px;
+                        width: min(180px, 100%);
+                        box-sizing: border-box;
+                    "
                 >
 
                 <button
+                    class="kr-button"
                     type="submit"
                     style="
                         background-color: #f2c94c;
@@ -55,9 +67,30 @@
 
     </form>
 
+    {% if search_keyword %}
+        <div style="
+            text-align: center;
+            margin: -8px 0 20px;
+        ">
+            <button
+                class="kr-button kr-button--secondary"
+                type="button"
+                onclick="location.href='{% url 'admin_home' %}'"
+                style="
+                    background-color: #ddd;
+                    color: #333;
+                    border: 1px solid #999;
+                    padding: 6px 14px;
+                "
+            >
+                一覧に戻る
+            </button>
+        </div>
+    {% endif %}
+
     {% if user_summaries %}
         {% for summary in user_summaries %}
-            <div style="
+            <div class="kr-card" style="
                 border: 1px solid #999;
                 padding: 12px;
                 margin-bottom: 12px;
@@ -83,6 +116,7 @@
 
                     {% if summary.user.role == 0 %}
                         <button
+                            class="kr-button"
                             type="button"
                             onclick="location.href='{% url 'trainee_detail' summary.user.id %}'"
                             style="
@@ -127,6 +161,7 @@
                         >
                             {% csrf_token %}
                            <button
+                                class="kr-button"
                                 type="submit"
                                 data-confirm-message="{{ summary.user.username }}さんを教育者へ変更しますか？"
                                 data-confirm-type="warning"
@@ -147,6 +182,7 @@
                         >
                             {% csrf_token %}
                             <button
+                                class="kr-button"
                                 type="submit"
                                 data-confirm-message="{{ summary.user.username }}さんを新人へ戻しますか？"
                                 data-confirm-type="warning"

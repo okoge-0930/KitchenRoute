@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div style="
+<div class="kr-page" style="
     max-width: 380px;
     margin: 24px auto;
     padding: 0 16px;
@@ -33,7 +33,7 @@
         ▪︎ 直近30日の成長
     </h3>
 
-    <div style="
+    <div class="kr-card" style="
         border: 1px solid #999;
         padding: 10px;
         margin-bottom: 14px;
@@ -65,7 +65,7 @@
 
     {% if recipe_progresses %}
         {% for item in recipe_progresses %}
-            <details style="
+            <details class="kr-card" style="
                 border: 1px solid #999;
                 padding: 10px;
                 margin-bottom: 12px;

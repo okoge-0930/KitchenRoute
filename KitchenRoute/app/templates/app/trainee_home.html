@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div style="
+<div class="kr-page" style="
     max-width: 380px;
     margin: 24px auto;
     padding: 0 16px;
@@ -18,7 +18,7 @@
 
     {% if task_list %}
         {% for task in task_list %}
-            <div style="
+            <div class="kr-card" style="
                 border: 1px solid #999;
                 padding: 12px;
                 margin: 0 auto 12px;
@@ -41,6 +41,7 @@
                     </strong>
 
                     <button
+                        class="kr-button"
                         type="button"
                         onclick="location.href='{% url 'trainee_task_detail' task.recipe.id %}'"
                         style="
