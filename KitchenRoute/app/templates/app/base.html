@@ -42,6 +42,39 @@
             overflow-wrap: anywhere;
         }
 
+        .kr-message {
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .kr-message--success {
+            color: #0b5f2a;
+            font-weight: bold;
+        }
+
+        .kr-message--error {
+            color: red;
+        }
+
+        .kr-field-errors {
+            margin: 6px 0 0;
+        }
+
+        .kr-public-link {
+            font-size: 13px;
+        }
+
+        .kr-public-logo {
+            display: inline-block;
+            background-color: #f2c94c;
+            color: white;
+            padding: 12px 18px;
+            font-size: 34px;
+            font-weight: bold;
+            margin-bottom: 28px;
+        }
+
         .kr-button,
         .kr-action-button,
         main button {
@@ -100,6 +133,16 @@
             color: white !important;
         }
 
+        .kr-pass-button,
+        main button.kr-pass-button {
+            width: 76px !important;
+            min-width: 76px;
+            height: 40px;
+            min-height: 40px;
+            padding: 0 10px !important;
+            text-align: center;
+        }
+
         main button:disabled,
         .kr-button:disabled,
         .kr-action-button:disabled {
@@ -114,7 +157,7 @@
 
 <body style="margin: 0;">
 
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and not hide_app_chrome %}
         <header style="
             position: fixed;
             top: 0;
@@ -136,14 +179,14 @@
     {% endif %}
 
     <main style="
-        padding-top: {% if user.is_authenticated %}90px{% else %}0{% endif %};
-        padding-bottom: {% if user.is_authenticated %}130px{% else %}0{% endif %};
+        padding-top: {% if user.is_authenticated and not hide_app_chrome %}90px{% else %}0{% endif %};
+        padding-bottom: {% if user.is_authenticated and not hide_app_chrome %}130px{% else %}0{% endif %};
     ">
         {% block content %}
         {% endblock %}
     </main>
 
-    {% if user.is_authenticated %}
+    {% if user.is_authenticated and not hide_app_chrome %}
         <nav style="
             position: fixed;
             bottom: 0;
@@ -262,6 +305,17 @@
         text-align: center;
     ">
 
+        <div
+            id="confirmTitle"
+            style="
+                display: none;
+                text-align: center;
+                font-weight: bold;
+                margin-bottom: 10px;
+                white-space: pre-line;
+            "
+        ></div>
+
         <p id="confirmMessage" style="
             text-align: center;
             white-space: pre-line;
@@ -328,6 +382,21 @@
             element.addEventListener("click", function (event) {
 
                 event.preventDefault();
+
+                const confirmTitle =
+                    document.getElementById("confirmTitle");
+
+                if (element.dataset.confirmTitle) {
+                    confirmTitle.innerText =
+                        element.dataset.confirmTitle;
+                    confirmTitle.style.display =
+                        "block";
+                } else {
+                    confirmTitle.innerText =
+                        "";
+                    confirmTitle.style.display =
+                        "none";
+                }
 
                 document.getElementById("confirmMessage").innerText =
                     element.dataset.confirmMessage;
@@ -396,66 +465,14 @@
 
     });
 
-        function closeSuccessModal() {
-            document.getElementById(
-                "successModal"
-            ).style.display = "none";
+    function closeDeleteSuccessModal() {
+        const modal = document.getElementById("deleteSuccessModal");
+
+        if (modal) {
+            modal.style.display = "none";
         }
+    }
 </script>
-
-{% if messages %}
-    {% for message in messages %}
-        <div id="successModal" style="
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        ">
-
-            <div style="
-                background: white;
-                width: 300px;
-                border-radius: 8px;
-                padding: 28px 20px;
-                text-align: center;
-                box-sizing: border-box;
-            ">
-
-                <div style="
-                    margin-bottom: 24px;
-                    line-height: 1.8;
-                    font-size: 14px;
-                ">
-                    {{ message }}
-                </div>
-
-                <button
-                    class="kr-button"
-                    onclick="closeSuccessModal()"
-                    style="
-                        background-color: #f2c94c;
-                        color: black;
-                        border: none;
-                        width: 100px;
-                        padding: 10px 0;
-                        border-radius: 6px;
-                        cursor: pointer;
-                    "
-                >
-                    OK
-                </button>
-
-            </div>
-
-        </div>
-    {% endfor %}
-{% endif %}
 
 </body>
 </html>

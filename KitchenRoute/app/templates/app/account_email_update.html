@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div style="max-width: 380px; margin: 40px auto;">
+<div style="max-width: 380px; margin: 16px auto;">
 
     <button
         class="kr-button kr-button--secondary"
@@ -13,7 +13,7 @@
             color: #333;
             border: 1px solid #999;
             padding: 6px 12px;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         "
     >
         ＜戻る
@@ -23,13 +23,16 @@
         メールアドレス変更
     </h2>
 
-    <br>
-
-    {% if error %}
-        <p style="color: red;">
-            {{ error }}
-        </p>
-    {% endif %}
+    <div style="
+        min-height: 28px;
+        margin-bottom: 8px;
+    ">
+        {% if error %}
+            <div class="kr-message kr-message--error">
+                {{ error }}
+            </div>
+        {% endif %}
+    </div>
 
     <form method="post">
         {% csrf_token %}

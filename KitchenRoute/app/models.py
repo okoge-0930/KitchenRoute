@@ -147,6 +147,13 @@ class Step(models.Model):
         # 工程一覧では、レシピごとにorderの小さい順で並べます。
         ordering = ["recipe", "order", "id"]
 
+        constraints = [
+            models.UniqueConstraint(
+                fields=["recipe", "order"],
+                name="unique_step_order_per_recipe",
+            )
+        ]
+
     def __str__(self):
         # 管理画面などで「レシピ名 - 工程名」と表示します。
         return f"{self.recipe.name} - {self.name}"

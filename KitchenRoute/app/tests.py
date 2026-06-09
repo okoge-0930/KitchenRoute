@@ -316,3 +316,124 @@ class UserSearchViewTests(TestCase):
             reverse("admin_home"),
             fetch_redirect_response=False,
         )
+
+
+class RegistrationValidationTests(TestCase):
+    def setUp(self):
+        self.organization = Organization.objects.create(
+            name="登録テスト店舗",
+            organization_code="REG001",
+        )
+
+    def test_admin_register_shows_all_password_errors_and_keeps_inputs(self):
+        response = self.client.post(
+            reverse("admin_register"),
+            {
+                "organization_name": "新規店舗",
+                "username": "new_admin",
+                "email": "new_admin@example.com",
+                "password": "aaaaa",
+                "password_confirm": "aaabbb",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        password_input_index = html.index('name="password"')
+        password_confirm_input_index = html.index('name="password_confirm"')
+        self.assertGreater(
+            html.index("パスワードは8文字以上で入力してください。"),
+            password_input_index,
+        )
+        self.assertLess(
+            html.index("パスワードは8文字以上で入力してください。"),
+            html.index("パスワードには数字を含めてください。"),
+        )
+        self.assertGreater(
+            html.index("パスワードが一致しません。"),
+            password_confirm_input_index,
+        )
+        self.assertContains(response, 'value="新規店舗"')
+        self.assertContains(response, 'value="new_admin"')
+        self.assertContains(response, 'value="new_admin@example.com"')
+
+    def test_general_register_shows_organization_code_and_password_errors(self):
+        response = self.client.post(
+            reverse("general_register"),
+            {
+                "organization_code": "WRONG001",
+                "username": "new_trainee",
+                "email": "new_trainee@example.com",
+                "password": "abcdefgh",
+                "password_confirm": "abcdefgh",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "組織コードが正しくありません。")
+        self.assertContains(response, "パスワードには数字を含めてください。")
+        self.assertNotContains(response, 'value="WRONG001"')
+        self.assertContains(response, 'value="new_trainee"')
+        self.assertContains(response, 'value="new_trainee@example.com"')
+
+
+class StepOrderValidationTests(TestCase):
+    def setUp(self):
+        self.organization = Organization.objects.create(
+            name="工程順序テスト店舗",
+            organization_code="STEPORDER001",
+        )
+        self.educator = User.objects.create_user(
+            username="step_order_editor",
+            password="password",
+            role=User.Role.EDUCATOR,
+            organization=self.organization,
+        )
+        self.recipe = Recipe.objects.create(
+            organization=self.organization,
+            name="順序テストレシピ",
+        )
+        self.step = Step.objects.create(
+            recipe=self.recipe,
+            name="既存工程",
+            order=1,
+        )
+        self.client.force_login(self.educator)
+
+    def test_step_create_rejects_duplicate_order(self):
+        response = self.client.post(
+            reverse("step_create", args=[self.recipe.id]),
+            {
+                "order": "1",
+                "name": "重複工程",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "同じ順序の工程がすでに登録されています。")
+        self.assertFalse(
+            Step.objects.filter(
+                recipe=self.recipe,
+                name="重複工程",
+            ).exists()
+        )
+
+    def test_step_update_rejects_duplicate_order(self):
+        other_step = Step.objects.create(
+            recipe=self.recipe,
+            name="別工程",
+            order=2,
+        )
+
+        response = self.client.post(
+            reverse("step_update", args=[other_step.id]),
+            {
+                "order": "1",
+                "name": "別工程",
+            },
+        )
+
+        other_step.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(other_step.order, 2)
+        self.assertContains(response, "同じ順序の工程がすでに登録されています。")

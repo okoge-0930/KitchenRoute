@@ -41,12 +41,37 @@
     ">
         {% if recent_recipe_progresses %}
             {% for item in recent_recipe_progresses %}
-                <p style="margin: 6px 0;">
-                    {{ item.recipe.name }}
-                    No.{{ item.oldest_progress.step.order }}
-                    →
-                    No.{{ item.latest_progress.step.order }}
-                </p>
+                <div style="
+                    margin: 8px 0 12px;
+                    line-height: 1.7;
+                ">
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 12px;
+                        font-weight: bold;
+                    ">
+                        <span style="word-break: break-word;">
+                            {{ item.recipe.name }}
+                        </span>
+
+                        <span style="
+                            min-width: 82px;
+                            text-align: right;
+                            flex-shrink: 0;
+                        ">
+                            ＋{{ item.learned_count }}工程習得
+                        </span>
+                    </div>
+
+                    <div style="
+                        font-size: 13px;
+                        color: #555;
+                        white-space: nowrap;
+                    ">
+                        30日前：No.{{ item.previous_order }} → 現在：No.{{ item.current_order }}
+                    </div>
+                </div>
             {% endfor %}
         {% else %}
             <p style="margin: 6px 0;">
@@ -71,9 +96,49 @@
                 margin-bottom: 12px;
                 font-size: 14px;
             ">
-                <summary style="cursor: pointer;">
-                    <strong>{{ item.recipe.name }}</strong>
-                    {{ item.progress_rate }}%
+                <summary style="
+                    cursor: pointer;
+                    white-space: nowrap;
+                ">
+                    <span style="
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 10px;
+                        width: calc(100% - 22px);
+                        vertical-align: middle;
+                    ">
+                        <strong style="
+                            flex: 1;
+                            min-width: 0;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        ">
+                            {{ item.recipe.name }}
+                        </strong>
+
+                        <span style="
+                            width: 44px;
+                            text-align: right;
+                            flex-shrink: 0;
+                        ">
+                            {{ item.progress_rate }}%
+                        </span>
+
+                        <span style="
+                            width: 90px;
+                            height: 14px;
+                            border: 1px solid #999;
+                            flex-shrink: 0;
+                        ">
+                            <span style="
+                                display: block;
+                                height: 100%;
+                                width: {{ item.progress_rate }}%;
+                                background-color: #f2c94c;
+                            "></span>
+                        </span>
+                    </span>
                 </summary>
 
                 <div style="margin-top: 8px;">

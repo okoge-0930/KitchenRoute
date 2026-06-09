@@ -27,11 +27,23 @@
     <form method="post">
         {% csrf_token %}
 
+        <div style="
+            min-height: 24px;
+            margin-bottom: 8px;
+        ">
+            {% if error %}
+                <div class="kr-message kr-message--error">
+                    {{ error }}
+                </div>
+            {% endif %}
+        </div>
+
         <label>順序（半角数字入力）</label><br>
 
         <input
             type="number"
             name="order"
+            value="{{ form_values.order|default:'' }}"
             min="1"
             step="1"
             inputmode="numeric"
@@ -50,6 +62,7 @@
         <input
             type="text"
             name="name"
+            value="{{ form_values.name|default:'' }}"
             required
             style="
                 width: 100%;

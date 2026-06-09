@@ -12,6 +12,19 @@
         レシピ一覧
     </h3>
 
+    {% if messages %}
+        <div style="
+            text-align: center;
+            margin: 8px 0;
+        ">
+            {% for message in messages %}
+                <div class="kr-message kr-message--success">
+                    ✓ {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <div style="text-align: center; margin: 12px 0 24px;">
         <button
             class="kr-button"
@@ -30,12 +43,14 @@
     {% if recipes %}
         {% for recipe in recipes %}
             <p class="kr-card" style="
-                border: 1px solid #999;
-                padding: 12px;
+                padding: 6px 0;
                 margin: 0 auto 12px;
                 font-size: 14px;
             ">
-                <a href="{% url 'step_management' recipe.id %}">
+                <a
+                    href="{% url 'step_management' recipe.id %}"
+                    style="text-decoration: none;"
+                >
                     ＞ {{ recipe.name }}
                 </a>
             </p>
@@ -47,5 +62,41 @@
     {% endif %}
 
 </div>
+
+{% if delete_success_message %}
+    <div
+        id="deleteSuccessModal"
+        style="
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        "
+    >
+        <div style="
+            background: white;
+            width: 300px;
+            border-radius: 8px;
+            padding: 28px 20px;
+            text-align: center;
+            box-sizing: border-box;
+        ">
+            <div class="kr-message" style="margin-bottom: 24px;">
+                {{ delete_success_message }}
+            </div>
+
+            <button
+                class="kr-button"
+                type="button"
+                onclick="closeDeleteSuccessModal()"
+            >
+                OK
+            </button>
+        </div>
+    </div>
+{% endif %}
 
 {% endblock %}

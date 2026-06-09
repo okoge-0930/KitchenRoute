@@ -4,7 +4,7 @@
 
 <div style="
     max-width: 360px;
-    margin: 60px auto;
+    margin: 24px auto;
     text-align: center;
     padding: 0 24px;
     box-sizing: border-box;
@@ -12,7 +12,7 @@
 
     <h2 style="
         font-size: 28px;
-        margin-bottom: 24px;
+        margin: 0 0 24px;
     ">
         アカウント登録が<br>
         完了しました
@@ -29,7 +29,7 @@
         font-size: 17px;
         line-height: 1.8;
     ">
-        「新人」として利用する場合はそのままログインしてください。
+        「新人」として利用する場合は、下記リンクからホーム画面へ移動してください。
     </p>
 
     <p style="
@@ -42,15 +42,14 @@
     <p style="
         line-height: 1.8;
     ">
-        権限設定後、ログインして利用してください。
+        権限設定後、下記リンクからホーム画面へ移動してください。
     </p>
 
-    <div style="margin-top: 40px;">
-        <a
-            class="kr-action-button"
-            href="{% url 'login' %}"
-        >
-            ログイン画面へ
+    <div style="
+        margin-top: 40px;
+    ">
+        <a class="kr-public-link" href="{% url 'trainee_home' %}">
+            ホーム画面へ
         </a>
     </div>
 

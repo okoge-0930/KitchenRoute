@@ -4,6 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        .kr-public-logo {
+            display: inline-block;
+            background-color: #f2c94c;
+            color: white;
+            padding: 12px 18px;
+            font-size: 34px;
+            font-weight: bold;
+            margin-bottom: 28px;
+        }
+
         button {
             display: inline-flex;
             align-items: center;
@@ -32,24 +42,21 @@
 
 <div style="
     max-width: 300px;
-    margin: 40px auto;
+    margin: 18px auto;
     text-align: center;
 ">
 
-    <div style="
-        display: inline-block;
-        background-color: #f2c94c;
-        color: white;
-        padding: 12px 18px;
-        font-size: 34px;
-        font-weight: bold;
-        margin-bottom: 34px;
-    ">
+    <div class="kr-public-logo">
         KitchenRoute
     </div>
 
     {% if error %}
-        <p style="color: red; text-align: left;">
+        <p style="
+            color: red;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.6;
+        ">
             {{ error }}
         </p>
     {% endif %}

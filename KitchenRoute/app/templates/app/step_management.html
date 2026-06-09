@@ -9,20 +9,49 @@
     box-sizing: border-box;
 ">
 
-    <button
-        class="kr-button kr-button--secondary"
-        type="button"
-        onclick="location.href='{% url 'skill_management' %}'"
-        style="
-            background-color: #ddd;
-            color: #333;
-            border: 1px solid #999;
-            padding: 6px 12px;
-            margin-bottom: 8px;
-        "
-    >
-        ＜戻る
-    </button>
+    <div style="
+        display: grid;
+        grid-template-columns: 76px minmax(0, 1fr) 76px;
+        align-items: center;
+        column-gap: 8px;
+        margin-bottom: 8px;
+    ">
+        <button
+            class="kr-button kr-button--secondary"
+            type="button"
+            onclick="location.href='{% url 'skill_management' %}'"
+            style="
+                background-color: #ddd;
+                color: #333;
+                border: 1px solid #999;
+                padding: 6px 12px;
+            "
+        >
+            ＜戻る
+        </button>
+
+        <div style="
+            min-width: 0;
+            text-align: center;
+        ">
+            {% if messages %}
+                {% for message in messages %}
+                    <div
+                        class="kr-message kr-message--success"
+                        style="
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        "
+                    >
+                        ✓ {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div aria-hidden="true"></div>
+    </div>
 
     <h2 style="
         text-align: center;
@@ -97,9 +126,9 @@
                         border: 1px solid #999;
                         padding: 4px 10px;
                     "
-                        data-confirm-message="⚠️警告
-                        レシピ削除をすると登録された全工程も削除されます。
-                        本当に削除しますか？"
+                        data-confirm-title="⚠️警告"
+                        data-confirm-message="レシピ削除をすると登録された全工程も削除されます。
+本当に削除しますか？"
                     >
                     削除
                 </button>
@@ -179,9 +208,9 @@
                                     border: 1px solid #999;
                                     padding: 4px 10px;
                                 "
-                                    data-confirm-message="⚠️警告
-                                    この操作は元に戻せません。
-                                    工程を削除しますか？"                            
+                                    data-confirm-title="⚠️警告"
+                                    data-confirm-message="この操作は元に戻せません。
+工程を削除しますか？"
                                 >
                                 削除
                             </button>
@@ -197,5 +226,41 @@
     {% endif %}
 
 </div>
+
+{% if delete_success_message %}
+    <div
+        id="deleteSuccessModal"
+        style="
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        "
+    >
+        <div style="
+            background: white;
+            width: 300px;
+            border-radius: 8px;
+            padding: 28px 20px;
+            text-align: center;
+            box-sizing: border-box;
+        ">
+            <div class="kr-message" style="margin-bottom: 24px;">
+                {{ delete_success_message }}
+            </div>
+
+            <button
+                class="kr-button"
+                type="button"
+                onclick="closeDeleteSuccessModal()"
+            >
+                OK
+            </button>
+        </div>
+    </div>
+{% endif %}
 
 {% endblock %}

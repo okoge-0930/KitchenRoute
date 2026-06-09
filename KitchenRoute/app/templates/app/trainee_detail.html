@@ -91,7 +91,7 @@
                             <div style="min-width: 80px; text-align: right;">
                                 {% if step_item.is_completed %}
                                     <button
-                                        class="kr-button kr-button--secondary"
+                                        class="kr-button kr-button--secondary kr-pass-button"
                                         disabled
                                         style="
                                             background-color: #ddd;
@@ -112,7 +112,7 @@
                                         {% csrf_token %}
 
                                         <button
-                                            class="kr-button"
+                                            class="kr-button kr-pass-button"
                                             type="submit"
                                             data-pass-button
                                             style="
@@ -181,6 +181,7 @@
                 const recordedBy = stepRow.querySelector("[data-recorded-by]");
                 const recordedByName = stepRow.querySelector("[data-recorded-by-name]");
                 const formData = new FormData(form);
+                const recipeCardTop = recipeCard.getBoundingClientRect().top;
 
                 button.disabled = true;
 
@@ -209,6 +210,12 @@
                         button.style.backgroundColor = "#ddd";
                         button.style.border = "none";
                         button.style.color = "#666";
+                        requestAnimationFrame(function () {
+                            window.scrollBy(
+                                0,
+                                recipeCard.getBoundingClientRect().top - recipeCardTop
+                            );
+                        });
                     })
                     .catch(function () {
                         button.disabled = false;

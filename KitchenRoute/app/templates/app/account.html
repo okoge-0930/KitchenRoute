@@ -4,7 +4,7 @@
 
 <div style="
     max-width: 380px;
-    margin: 40px auto;
+    margin: 24px auto;
     padding: 0 16px;
     box-sizing: border-box;
 ">
@@ -16,6 +16,19 @@
     ">
         アカウント情報
     </h2>
+
+    {% if messages %}
+        <div style="
+            text-align: center;
+            margin: 8px 0 16px;
+        ">
+            {% for message in messages %}
+                <div class="kr-message kr-message--success">
+                    ✓ {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     {% if user.organization %}
         <p style="

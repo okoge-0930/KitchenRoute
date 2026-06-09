@@ -27,12 +27,23 @@
     <form method="post">
         {% csrf_token %}
 
+        <div style="
+            min-height: 24px;
+            margin-bottom: 8px;
+        ">
+            {% if error %}
+                <div class="kr-message kr-message--error">
+                    {{ error }}
+                </div>
+            {% endif %}
+        </div>
+
         <label>順序（半角数字入力）</label><br>
 
         <input
             type="number"
             name="order"
-            value="{{ step.order }}"
+            value="{{ form_values.order|default:step.order }}"
             min="1"
             step="1"
             inputmode="numeric"
@@ -44,6 +55,15 @@
             "
         >
 
+        <div style="
+            margin-top: 6px;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #666;
+        ">
+            順序変更時は、重複しない別の番号を一時的に指定し、変更してください。
+        </div>
+
         <br><br>
 
         <label>工程名</label><br>
@@ -51,7 +71,7 @@
         <input
             type="text"
             name="name"
-            value="{{ step.name }}"
+            value="{{ form_values.name|default:step.name }}"
             required
             style="
                 width: 100%;

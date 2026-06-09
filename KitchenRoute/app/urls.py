@@ -19,6 +19,7 @@ from .views import (
     TraineeTaskDetailView,
     MyProgressView,
     AccountView,
+    AccountPasswordChangeView,
     LogoutRedirectView,
     RecipeUpdateView,
     AdminRegisterView,
@@ -112,6 +113,7 @@ urlpatterns = [
         template_name="app/password_reset.html",
         email_template_name="app/password_reset_email.txt",
         success_url="/password-reset/done/",
+        extra_context={"hide_app_chrome": True},
     ),
     name="password_reset",
 ),
@@ -119,6 +121,7 @@ urlpatterns = [
     "password-reset/done/",
     auth_views.PasswordResetDoneView.as_view(
         template_name="app/password_reset_done.html",
+        extra_context={"hide_app_chrome": True},
     ),
     name="password_reset_done",
 ),
@@ -127,6 +130,7 @@ urlpatterns = [
     auth_views.PasswordResetConfirmView.as_view(
         template_name="app/password_reset_confirm.html",
         success_url="/reset/done/",
+        extra_context={"hide_app_chrome": True},
     ),
     name="password_reset_confirm",
 ),
@@ -135,6 +139,7 @@ urlpatterns = [
     "reset/done/",
     auth_views.PasswordResetCompleteView.as_view(
         template_name="app/password_reset_complete.html",
+        extra_context={"hide_app_chrome": True},
     ),
     name="password_reset_complete",
 ),
@@ -151,10 +156,7 @@ urlpatterns = [
 ),
     path(
     "account/password/change/",
-    auth_views.PasswordChangeView.as_view(
-        template_name="app/account_password_change.html",
-        success_url="/account/",
-    ),
+    AccountPasswordChangeView.as_view(),
     name="account_password_change",
 ),
 ]
