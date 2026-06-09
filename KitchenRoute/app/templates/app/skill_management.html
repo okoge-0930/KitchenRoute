@@ -4,6 +4,38 @@
 
 <div class="kr-page" style="max-width: 420px; margin: 24px auto;">
 
+    {% if messages %}
+        <div style="
+            display: grid;
+            grid-template-columns: 76px minmax(0, 1fr) 76px;
+            align-items: center;
+            column-gap: 8px;
+            margin-bottom: 8px;
+        ">
+            <div aria-hidden="true"></div>
+
+            <div style="
+                min-width: 0;
+                text-align: center;
+            ">
+                {% for message in messages %}
+                    <div
+                        class="kr-message kr-message--success"
+                        style="
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
+                        "
+                    >
+                        ✓ {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div aria-hidden="true"></div>
+        </div>
+    {% endif %}
+
     <h2 style="text-align: center;">
         スキル管理
     </h2>
@@ -11,19 +43,6 @@
     <h3 style="text-align: center;">
         レシピ一覧
     </h3>
-
-    {% if messages %}
-        <div style="
-            text-align: center;
-            margin: 8px 0;
-        ">
-            {% for message in messages %}
-                <div class="kr-message kr-message--success">
-                    ✓ {{ message }}
-                </div>
-            {% endfor %}
-        </div>
-    {% endif %}
 
     <div style="text-align: center; margin: 12px 0 24px;">
         <button
