@@ -1,0 +1,48 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
+<div style="
+    max-width: 360px;
+    margin: 24px auto;
+    padding: 0 20px;
+    text-align: center;
+    box-sizing: border-box;
+">
+
+    <p style="
+        font-size: 16px;
+        margin: 0 0 10px;
+        line-height: 1.8;
+    ">
+        組織コード
+    </p>
+
+    <p style="
+        font-size: 22px;
+        margin: 0 0 28px;
+        line-height: 1.6;
+        font-weight: bold;
+        word-break: break-word;
+    ">
+        {{ organization_code }}
+    </p>
+
+    <p style="
+        line-height: 1.8;
+        font-size: 14px;
+        margin-bottom: 28px;
+        text-align: left;
+    ">
+        上記組織コードをログイン時に入力してください。
+    </p>
+
+    <p>
+        <a class="kr-public-link" href="{% url 'login' %}">
+            ログイン画面へ
+        </a>
+    </p>
+
+</div>
+
+{% endblock %}

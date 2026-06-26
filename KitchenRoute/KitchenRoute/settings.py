@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "100.64.1.12",
     "okoge0930.pythonanywhere.com",
+    "100.64.1.17",
 ]
 
 

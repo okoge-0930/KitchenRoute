@@ -16,7 +16,16 @@
         レシピ登録
     </h2>
 
-    <form method="post">
+    {% if error %}
+        <div
+            class="kr-message kr-message--error"
+            style="margin-bottom: 12px;"
+        >
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="post" data-disable-on-submit>
         {% csrf_token %}
 
         <label>レシピ名</label><br>
@@ -24,6 +33,7 @@
         <input
             type="text"
             name="name"
+            value="{{ form_values.name|default:'' }}"
             style="
                 width: 100%;
                 padding: 8px;

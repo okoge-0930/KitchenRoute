@@ -23,18 +23,23 @@
         名前変更
     </h2>
 
-    <div style="
-        min-height: 28px;
-        margin-bottom: 8px;
-    ">
-        {% if error %}
+    {% if errors %}
+        <div style="margin-bottom: 12px;">
+            {% for error in errors %}
+                <div class="kr-message kr-message--error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+    {% elif error %}
+        <div style="margin-bottom: 12px;">
             <div class="kr-message kr-message--error">
                 {{ error }}
             </div>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 
-    <form method="post">
+    <form method="post" data-disable-on-submit>
         {% csrf_token %}
 
         <div style="margin-bottom: 16px;">

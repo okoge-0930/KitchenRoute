@@ -1,4 +1,6 @@
-from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth import update_session_auth_hash
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.views.generic import TemplateView
@@ -10,6 +12,7 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 import uuid
+import unicodedata
 from django.contrib import messages
 
 
@@ -40,6 +43,57 @@ def password_validation_errors(password, password_confirm):
         field_errors["password"].append("パスワードには数字を含めてください。")
 
     return field_errors
+
+
+def normalize_duplicate_name(value):
+    normalized = unicodedata.normalize(
+        "NFKC",
+        (value or "").strip(),
+    )
+    reading_replacements = {
+        "計量": "けいりょう",
+    }
+
+    for original, reading in reading_replacements.items():
+        normalized = normalized.replace(original, reading)
+
+    chars = []
+
+    for char in normalized:
+        code = ord(char)
+
+        if 0x30A1 <= code <= 0x30F6:
+            chars.append(chr(code - 0x60))
+        else:
+            chars.append(char)
+
+    return "".join(chars)
+
+
+def recipe_name_exists_in_organization(organization, name, exclude_id=None):
+    target_name = normalize_duplicate_name(name)
+    recipes = Recipe.objects.filter(organization=organization)
+
+    if exclude_id:
+        recipes = recipes.exclude(id=exclude_id)
+
+    return any(
+        normalize_duplicate_name(recipe.name) == target_name
+        for recipe in recipes
+    )
+
+
+def step_name_exists_in_recipe(recipe, name, exclude_id=None):
+    target_name = normalize_duplicate_name(name)
+    steps = Step.objects.filter(recipe=recipe)
+
+    if exclude_id:
+        steps = steps.exclude(id=exclude_id)
+
+    return any(
+        normalize_duplicate_name(step.name) == target_name
+        for step in steps
+    )
 
 
 class LoginView(TemplateView):
@@ -114,6 +168,94 @@ class LoginView(TemplateView):
             return redirect("admin_home")
 
         return redirect("home")
+
+
+class OrganizationCodeConfirmView(TemplateView):
+    template_name = "app/organization_code_confirm.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return public_page_context(context)
+
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get("email", "")
+        password = request.POST.get("password", "")
+
+        user = User.objects.filter(email=email).first()
+
+        if user is None:
+            return render(
+                request,
+                self.template_name,
+                public_page_context(
+                    {
+                        "errors": [
+                            "入力されたメールアドレスは登録されていません。",
+                        ],
+                        "form_values": {
+                            "email": email,
+                        },
+                    }
+                ),
+            )
+
+        if not user.check_password(password):
+            return render(
+                request,
+                self.template_name,
+                public_page_context(
+                    {
+                        "errors": [
+                            "パスワードが正しくありません。",
+                        ],
+                        "form_values": {
+                            "email": email,
+                        },
+                    }
+                ),
+            )
+
+        if user.organization is None:
+            return render(
+                request,
+                self.template_name,
+                public_page_context(
+                    {
+                        "errors": [
+                            "組織コードを確認できませんでした。",
+                        ],
+                        "form_values": {
+                            "email": email,
+                        },
+                    }
+                ),
+            )
+
+        request.session["confirmed_organization_code"] = (
+            user.organization.organization_code
+        )
+
+        return redirect("organization_code_confirm_done")
+
+
+class OrganizationCodeConfirmDoneView(TemplateView):
+    template_name = "app/organization_code_confirm_done.html"
+
+    def get(self, request, *args, **kwargs):
+        if not request.session.get("confirmed_organization_code"):
+            return redirect("organization_code_confirm")
+
+        return super().get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        organization_code = self.request.session.get(
+            "confirmed_organization_code"
+        )
+
+        context["organization_code"] = organization_code
+
+        return public_page_context(context)
     
 
 class EducatorHomeView(LoginRequiredMixin, TemplateView):
@@ -481,9 +623,24 @@ class RecipeCreateView(TemplateView):
     template_name = "app/recipe_create.html"
 
     def post(self, request, *args, **kwargs):
-        recipe_name = request.POST.get("name")
+        recipe_name = request.POST.get("name", "").strip()
 
         if recipe_name:
+            if recipe_name_exists_in_organization(
+                request.user.organization,
+                recipe_name,
+            ):
+                return render(
+                    request,
+                    self.template_name,
+                    {
+                        "error": "同じレシピ名が既に登録されています。",
+                        "form_values": {
+                            "name": recipe_name,
+                        },
+                    },
+                )
+
             Recipe.objects.create(
                 organization=request.user.organization,
                 name=recipe_name,
@@ -527,7 +684,35 @@ class RecipeUpdateView(LoginRequiredMixin, View):
             organization=request.user.organization,
         )
 
-        recipe.name = request.POST.get("name")
+        recipe_name = request.POST.get("name", "").strip()
+
+        if recipe_name_exists_in_organization(
+            request.user.organization,
+            recipe_name,
+            exclude_id=recipe.id,
+        ):
+            redirect_to = request.POST.get("next", "")
+
+            if not url_has_allowed_host_and_scheme(
+                redirect_to,
+                allowed_hosts={request.get_host()},
+            ):
+                redirect_to = ""
+
+            return render(
+                request,
+                "app/recipe_update.html",
+                {
+                    "recipe": recipe,
+                    "redirect_to": redirect_to,
+                    "error": "同じレシピ名が既に登録されています。",
+                    "form_values": {
+                        "name": recipe_name,
+                    },
+                },
+            )
+
+        recipe.name = recipe_name
         recipe.save()
 
         messages.success(
@@ -569,20 +754,28 @@ class StepCreateView(TemplateView):
             organization=request.user.organization,
         )
 
-        step_name = request.POST.get("name")
+        step_name = request.POST.get("name", "").strip()
         step_order = request.POST.get("order")
 
         if step_name and step_order:
+            errors = []
+
             if Step.objects.filter(
                 recipe=recipe,
                 order=step_order,
             ).exists():
+                errors.append("同じ順序の工程がすでに登録されています。")
+
+            if step_name_exists_in_recipe(recipe, step_name):
+                errors.append("同じ工程名が既に登録されています。")
+
+            if errors:
                 return render(
                     request,
                     self.template_name,
                     {
                         "recipe": recipe,
-                        "error": "同じ順序の工程がすでに登録されています。",
+                        "errors": errors,
                         "form_values": {
                             "order": step_order,
                             "name": step_name,
@@ -628,19 +821,31 @@ class StepUpdateView(TemplateView):
         )
 
         step_order = request.POST.get("order")
-        step_name = request.POST.get("name")
+        step_name = request.POST.get("name", "").strip()
 
         if step_order and step_name:
+            errors = []
+
             if Step.objects.filter(
                 recipe=step.recipe,
                 order=step_order,
             ).exclude(id=step.id).exists():
+                errors.append("同じ順序の工程がすでに登録されています。")
+
+            if step_name_exists_in_recipe(
+                step.recipe,
+                step_name,
+                exclude_id=step.id,
+            ):
+                errors.append("同じ工程名が既に登録されています。")
+
+            if errors:
                 return render(
                     request,
                     self.template_name,
                     {
                         "step": step,
-                        "error": "同じ順序の工程がすでに登録されています。",
+                        "errors": errors,
                         "form_values": {
                             "order": step_order,
                             "name": step_name,
@@ -801,38 +1006,23 @@ class MyProgressView(LoginRequiredMixin, TemplateView):
 
         thirty_days_ago = timezone.now() - timedelta(days=30)
 
-        recent_recipe_progresses = []
+        recent_recipe_steps = []
 
         for recipe in recipes:
             recent_progresses = completed_steps.filter(
                 step__recipe=recipe,
                 passed_at__gte=thirty_days_ago,
-            )
+            ).select_related("step").order_by("step__order", "step__id")
 
             if recent_progresses.exists():
-                previous_progress = completed_steps.filter(
-                    step__recipe=recipe,
-                    passed_at__lt=thirty_days_ago,
-                ).order_by("step__order").last()
-
-                current_progress = completed_steps.filter(
-                    step__recipe=recipe,
-                ).order_by("step__order").last()
-
-                recent_recipe_progresses.append(
+                recent_recipe_steps.append(
                     {
                         "recipe": recipe,
-                        "learned_count": recent_progresses.count(),
-                        "previous_order": (
-                            previous_progress.step.order
-                            if previous_progress
-                            else 0
-                        ),
-                        "current_order": (
-                            current_progress.step.order
-                            if current_progress
-                            else 0
-                        ),
+                        "count": recent_progresses.count(),
+                        "steps": [
+                            progress.step
+                            for progress in recent_progresses
+                        ],
                     }
                 )
 
@@ -880,7 +1070,7 @@ class MyProgressView(LoginRequiredMixin, TemplateView):
         recipe_progresses.sort(key=lambda x: x["progress_rate"])
 
         context["overall_progress_rate"] = overall_progress_rate
-        context["recent_recipe_progresses"] = recent_recipe_progresses
+        context["recent_recipe_steps"] = recent_recipe_steps
         context["recipe_progresses"] = recipe_progresses
 
         return context
@@ -915,8 +1105,33 @@ class AccountUsernameUpdateView(LoginRequiredMixin,TemplateView):
         **kwargs
     ):
         username = request.POST.get(
-            "username"
-        )
+            "username",
+            "",
+        ).strip()
+
+        if not username:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "errors": [
+                        "ユーザー名を入力してください。",
+                    ],
+                    "current_username": request.user.username,
+                },
+            )
+
+        if len(username) > 150:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "errors": [
+                        "ユーザー名は150文字以内で入力してください。",
+                    ],
+                    "current_username": request.user.username,
+                },
+            )
 
         if User.objects.filter(
             username=username
@@ -927,8 +1142,9 @@ class AccountUsernameUpdateView(LoginRequiredMixin,TemplateView):
                 request,
                 self.template_name,
                 {
-                    "error":
-                    "この名前はすでに登録されています。",
+                    "errors": [
+                        "この名前はすでに登録されています。",
+                    ],
                     "current_username":
                     request.user.username,
                 },
@@ -971,8 +1187,35 @@ class AccountEmailUpdateView(LoginRequiredMixin,TemplateView):
         **kwargs
     ):
         email = request.POST.get(
-            "email"
-        )
+            "email",
+            "",
+        ).strip()
+
+        if not email:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "errors": [
+                        "メールアドレスを入力してください。",
+                    ],
+                    "current_email": request.user.email,
+                },
+            )
+
+        try:
+            validate_email(email)
+        except ValidationError:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "errors": [
+                        "正しいメールアドレス形式で入力してください。",
+                    ],
+                    "current_email": request.user.email,
+                },
+            )
 
         if User.objects.filter(
             email=email
@@ -983,8 +1226,9 @@ class AccountEmailUpdateView(LoginRequiredMixin,TemplateView):
                 request,
                 self.template_name,
                 {
-                    "error":
-                    "このメールアドレスはすでに登録されています。",
+                    "errors": [
+                        "このメールアドレスは既に使用されています。",
+                    ],
                     "current_email":
                     request.user.email,
                 },
@@ -1001,17 +1245,45 @@ class AccountEmailUpdateView(LoginRequiredMixin,TemplateView):
         return redirect("account")
 
 
-class AccountPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+class AccountPasswordChangeView(LoginRequiredMixin, TemplateView):
     template_name = "app/account_password_change.html"
-    success_url = "/account/"
 
-    def form_valid(self, form):
+    def post(self, request, *args, **kwargs):
+        old_password = request.POST.get("old_password", "")
+        new_password1 = request.POST.get("new_password1", "")
+        new_password2 = request.POST.get("new_password2", "")
+
+        errors = []
+
+        if not request.user.check_password(old_password):
+            errors.append("現在のパスワードが正しくありません。")
+
+        password_errors = password_validation_errors(
+            new_password1,
+            new_password2,
+        )
+        errors.extend(password_errors["password"])
+        errors.extend(password_errors["password_confirm"])
+
+        if errors:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "errors": errors,
+                },
+            )
+
+        request.user.set_password(new_password1)
+        request.user.save()
+        update_session_auth_hash(request, request.user)
+
         messages.success(
-            self.request,
+            request,
             "パスワードを変更しました。"
         )
 
-        return super().form_valid(form)
+        return redirect("account")
     
 class LogoutRedirectView(TemplateView):
     def get(self, request, *args, **kwargs):
@@ -1119,12 +1391,35 @@ class AdminRegisterView(TemplateView):
 class AdminRegisterDoneView(TemplateView):
     template_name = "app/admin_register_done.html"
 
+    def get(self, request, *args, **kwargs):
+        organization_code = request.session.get("organization_code")
+
+        if (
+            not organization_code
+            and not (
+                request.user.is_authenticated
+                and request.user.organization
+            )
+        ):
+            return redirect("admin_register")
+
+        return super().get(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context["organization_code"] = self.request.session.get(
             "organization_code"
         )
+
+        if (
+            not context["organization_code"]
+            and self.request.user.is_authenticated
+            and self.request.user.organization
+        ):
+            context["organization_code"] = (
+                self.request.user.organization.organization_code
+            )
 
         return public_page_context(context)
     

@@ -1,0 +1,116 @@
+{% extends "app/base.html" %}
+
+{% block content %}
+
+<div style="max-width: 320px; margin: 18px auto; padding: 0 16px; text-align: center; box-sizing: border-box;">
+
+    <div class="kr-public-logo">
+        KitchenRoute
+    </div>
+
+    <h3 style="margin: 0 0 20px;">
+        組織コード確認
+    </h3>
+
+    <div
+        style="
+            border: 1px solid #999;
+            padding: 12px;
+            text-align: left;
+            margin-bottom: 20px;
+            font-size: 14px;
+        "
+    >
+        登録したメールアドレスとパスワードを入力してください。組織コードを表示します。
+    </div>
+
+    {% if errors %}
+        <div style="
+            text-align: left;
+            margin-bottom: 16px;
+        ">
+            {% for error in errors %}
+                <div class="kr-message kr-message--error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+    {% elif error %}
+        <div style="
+            text-align: left;
+            margin-bottom: 16px;
+        ">
+            <div class="kr-message kr-message--error">
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+
+    <form method="post" data-disable-on-submit>
+        {% csrf_token %}
+
+        <div style="text-align: left;">
+            <label>
+                メールアドレス
+            </label>
+        </div>
+
+        <input
+            type="email"
+            name="email"
+            value="{{ form_values.email|default:'' }}"
+            required
+            autocomplete="off"
+            style="
+                width: 100%;
+                padding: 8px;
+                margin-top: 8px;
+                margin-bottom: 20px;
+                box-sizing: border-box;
+            "
+        >
+
+        <div style="text-align: left;">
+            <label>
+                パスワード
+            </label>
+        </div>
+
+        <input
+            type="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            style="
+                width: 100%;
+                padding: 8px;
+                margin-top: 8px;
+                margin-bottom: 20px;
+                box-sizing: border-box;
+            "
+        >
+
+        <button
+            class="kr-button"
+            type="submit"
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 8px 28px;
+                cursor: pointer;
+            "
+        >
+            確認する
+        </button>
+
+    </form>
+
+    <div style="margin-top: 20px;">
+        <a class="kr-public-link" href="{% url 'login' %}">
+            ログイン画面へ
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

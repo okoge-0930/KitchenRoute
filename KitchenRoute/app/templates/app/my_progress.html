@@ -30,55 +30,50 @@
         font-size: 17px;
         margin-bottom: 6px;
     ">
-        ▪︎ 直近30日の成長
+        ▪︎ 直近30日で合格した工程
     </h3>
 
-    <div class="kr-card" style="
-        border: 1px solid #999;
-        padding: 10px;
-        margin-bottom: 14px;
-        font-size: 14px;
-    ">
-        {% if recent_recipe_progresses %}
-            {% for item in recent_recipe_progresses %}
-                <div style="
-                    margin: 8px 0 12px;
-                    line-height: 1.7;
+    {% if recent_recipe_steps %}
+        {% for item in recent_recipe_steps %}
+            <details class="kr-card" style="
+                border: 1px solid #999;
+                padding: 10px;
+                margin-bottom: 12px;
+                font-size: 14px;
+            ">
+                <summary style="
+                    cursor: pointer;
+                    font-weight: bold;
+                    line-height: 1.6;
                 ">
-                    <div style="
-                        display: flex;
-                        justify-content: space-between;
-                        gap: 12px;
-                        font-weight: bold;
-                    ">
-                        <span style="word-break: break-word;">
-                            {{ item.recipe.name }}
-                        </span>
+                    {{ item.recipe.name }}（{{ item.count }}件）
+                </summary>
 
-                        <span style="
-                            min-width: 82px;
-                            text-align: right;
-                            flex-shrink: 0;
-                        ">
-                            ＋{{ item.learned_count }}工程習得
-                        </span>
-                    </div>
-
-                    <div style="
-                        font-size: 13px;
-                        color: #555;
-                        white-space: nowrap;
-                    ">
-                        30日前：No.{{ item.previous_order }} → 現在：No.{{ item.current_order }}
-                    </div>
+                <div style="
+                    margin-top: 10px;
+                    line-height: 1.8;
+                ">
+                    {% for step in item.steps %}
+                        <div>
+                            No.{{ step.order }}
+                            {{ step.name }}
+                        </div>
+                    {% endfor %}
                 </div>
-            {% endfor %}
-        {% else %}
+            </details>
+        {% endfor %}
+    {% else %}
+        <div class="kr-card" style="
+            border: 1px solid #999;
+            padding: 10px;
+            margin-bottom: 14px;
+            font-size: 14px;
+        ">
             <p style="margin: 6px 0;">
                 直近30日以内に合格した工程はありません。
             </p>
-        {% endif %}
-    </div>
+        </div>
+    {% endif %}
 
     <h3 style="
         text-align: left;
@@ -144,8 +139,9 @@
                 <div style="margin-top: 8px;">
                     {% for step_item in item.steps %}
                         <div style="
-                            display: flex;
-                            justify-content: space-between;
+                            display: grid;
+                            grid-template-columns: minmax(0, 1fr) 44px;
+                            align-items: start;
                             gap: 12px;
                             margin-bottom: 8px;
                         ">
@@ -155,7 +151,7 @@
                             </span>
 
                             <span style="
-                                min-width: 36px;
+                                width: 44px;
                                 text-align: right;
                                 font-weight: bold;
                             ">

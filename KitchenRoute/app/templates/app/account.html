@@ -41,7 +41,7 @@
         </p>
     {% endif %}
 
-    {% if user.role == 2 and user.organization %}
+    {% if user.organization and user.organization.organization_code %}
         <p style="
             text-align: center;
             font-size: 18px;

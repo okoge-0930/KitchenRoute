@@ -28,9 +28,9 @@
     {% if steps %}
         {% for step in steps %}
             <div class="kr-card" style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) 44px;
+                align-items: start;
                 gap: 12px;
                 margin-bottom: 12px;
                 font-size: 14px;
@@ -43,7 +43,7 @@
                 </div>
 
                 <div style="
-                    min-width: 40px;
+                    width: 44px;
                     text-align: right;
                     font-weight: bold;
                 ">

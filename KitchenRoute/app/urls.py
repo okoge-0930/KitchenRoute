@@ -2,6 +2,8 @@ from django.urls import path
 from django.contrib.auth import views as auth_views
 from .views import (
     LoginView,
+    OrganizationCodeConfirmView,
+    OrganizationCodeConfirmDoneView,
     HomeView,
     EducatorHomeView,
     TraineeHomeView,
@@ -33,6 +35,16 @@ from .views import (
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("login/", LoginView.as_view(), name="login"),
+    path(
+    "organization-code/confirm/",
+    OrganizationCodeConfirmView.as_view(),
+    name="organization_code_confirm",
+),
+    path(
+    "organization-code/confirm/done/",
+    OrganizationCodeConfirmDoneView.as_view(),
+    name="organization_code_confirm_done",
+),
     path("logout/", LogoutRedirectView.as_view(), name="logout"),
     path("educator-home/", EducatorHomeView.as_view(), name="educator_home"),
     path("trainee-home/", TraineeHomeView.as_view(), name="trainee_home"),

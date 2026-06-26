@@ -16,7 +16,16 @@
         レシピ編集
     </h2>
 
-    <form method="post">
+    {% if error %}
+        <div
+            class="kr-message kr-message--error"
+            style="margin-bottom: 12px;"
+        >
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="post" data-disable-on-submit>
         {% csrf_token %}
 
         {% if redirect_to %}
@@ -32,7 +41,7 @@
         <input
             type="text"
             name="name"
-            value="{{ recipe.name }}"
+            value="{{ form_values.name|default:recipe.name }}"
             required
             style="
                 width: 100%;

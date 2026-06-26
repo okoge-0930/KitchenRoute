@@ -350,12 +350,12 @@
             </button>
 
             <button
-                class="kr-button kr-button--cancel"
+                class="kr-button kr-button--secondary"
                 type="button"
                 id="confirmNo"
                 style="
-                    background-color: #2f80ed;
-                    color: white;
+                    background-color: #ddd;
+                    color: #333;
                     border: 1px solid #999;
                     min-width: 64px;
                     min-height: 36px;
@@ -376,6 +376,35 @@
     let targetUrl = null;
 
     document.addEventListener("DOMContentLoaded", function () {
+
+        document.querySelectorAll("form[data-disable-on-submit]").forEach(function (form) {
+
+            form.addEventListener("submit", function (event) {
+
+                if (form.dataset.submitting === "true") {
+                    event.preventDefault();
+                    return;
+                }
+
+                form.dataset.submitting = "true";
+
+                const submitButton = event.submitter || form.querySelector(
+                    "button[type='submit'], input[type='submit']"
+                );
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+
+                    if (submitButton.tagName === "INPUT") {
+                        submitButton.value = "処理中…";
+                    } else {
+                        submitButton.textContent = "処理中…";
+                    }
+                }
+
+            });
+
+        });
 
         document.querySelectorAll("[data-confirm-message]").forEach(function (element) {
 
@@ -407,6 +436,9 @@
                 const yesButton =
                     document.getElementById("confirmYes");
 
+                yesButton.disabled = false;
+                yesButton.textContent = "はい";
+
                 if (confirmType === "warning") {
                     yesButton.classList.remove("kr-button--danger");
 
@@ -437,6 +469,10 @@
         document.getElementById("confirmYes")
             .addEventListener("click", function () {
 
+            const yesButton = document.getElementById("confirmYes");
+            yesButton.disabled = true;
+            yesButton.textContent = "処理中…";
+
             if (targetForm) {
                 document.getElementById("confirmModal").style.display =
                     "none";
@@ -457,6 +493,9 @@
 
             document.getElementById("confirmModal").style.display =
                 "none";
+
+            document.getElementById("confirmYes").disabled = false;
+            document.getElementById("confirmYes").textContent = "はい";
 
             targetForm = null;
             targetUrl = null;

@@ -24,19 +24,24 @@
         レシピ名　{{ step.recipe.name }}
     </p>
 
-    <form method="post">
+    <form method="post" data-disable-on-submit>
         {% csrf_token %}
 
-        <div style="
-            min-height: 24px;
-            margin-bottom: 8px;
-        ">
-            {% if error %}
+        {% if errors %}
+            <div style="margin-bottom: 8px;">
+                {% for error in errors %}
+                    <div class="kr-message kr-message--error">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% elif error %}
+            <div style="margin-bottom: 8px;">
                 <div class="kr-message kr-message--error">
                     {{ error }}
                 </div>
-            {% endif %}
-        </div>
+            </div>
+        {% endif %}
 
         <label>順序（半角数字入力）</label><br>
 
