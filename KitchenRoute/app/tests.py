@@ -418,11 +418,15 @@ class RegistrationValidationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         html = response.content.decode()
-        password_input_index = html.index('name="password"')
-        password_confirm_input_index = html.index('name="password_confirm"')
+        title_index = html.index("管理者用アカウント新規登録")
+        form_index = html.index("<form")
         self.assertGreater(
             html.index("パスワードは8文字以上で入力してください。"),
-            password_input_index,
+            title_index,
+        )
+        self.assertLess(
+            html.index("パスワードは8文字以上で入力してください。"),
+            form_index,
         )
         self.assertLess(
             html.index("パスワードは8文字以上で入力してください。"),
@@ -430,7 +434,11 @@ class RegistrationValidationTests(TestCase):
         )
         self.assertGreater(
             html.index("パスワードが一致しません。"),
-            password_confirm_input_index,
+            title_index,
+        )
+        self.assertLess(
+            html.index("パスワードが一致しません。"),
+            form_index,
         )
         self.assertContains(response, 'value="新規店舗"')
         self.assertContains(response, 'value="new_admin"')
@@ -449,6 +457,21 @@ class RegistrationValidationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        title_index = html.index("一般用アカウント新規登録")
+        form_index = html.index("<form")
+        self.assertLess(
+            title_index,
+            html.index("組織コードが正しくありません。"),
+        )
+        self.assertLess(
+            html.index("組織コードが正しくありません。"),
+            form_index,
+        )
+        self.assertLess(
+            html.index("パスワードには数字を含めてください。"),
+            form_index,
+        )
         self.assertContains(response, "組織コードが正しくありません。")
         self.assertContains(response, "パスワードには数字を含めてください。")
         self.assertNotContains(response, 'value="WRONG001"')

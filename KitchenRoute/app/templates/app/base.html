@@ -57,8 +57,32 @@
             color: red;
         }
 
-        .kr-field-errors {
-            margin: 6px 0 0;
+        .kr-message-list {
+            margin: 0 0 12px;
+            text-align: left;
+        }
+
+        .kr-message-list--center {
+            text-align: center;
+        }
+
+        .kr-step-status-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 44px;
+            align-items: start;
+            gap: 12px;
+            width: min(100%, 280px);
+        }
+
+        .kr-step-status-name {
+            min-width: 0;
+            word-break: break-word;
+        }
+
+        .kr-step-status {
+            width: 44px;
+            font-weight: bold;
+            text-align: left;
         }
 
         .kr-public-link {
@@ -504,13 +528,6 @@
 
     });
 
-    function closeDeleteSuccessModal() {
-        const modal = document.getElementById("deleteSuccessModal");
-
-        if (modal) {
-            modal.style.display = "none";
-        }
-    }
 </script>
 
 </body>

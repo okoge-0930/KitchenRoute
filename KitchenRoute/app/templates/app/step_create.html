@@ -16,6 +16,22 @@
         工程登録
     </h2>
 
+    {% if errors %}
+        <div class="kr-message-list">
+            {% for error in errors %}
+                <div class="kr-message kr-message--error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+    {% elif error %}
+        <div class="kr-message-list">
+            <div class="kr-message kr-message--error">
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+
     <p style="
         text-align: center;
         font-size: 18px;
@@ -26,22 +42,6 @@
 
     <form method="post" data-disable-on-submit>
         {% csrf_token %}
-
-        {% if errors %}
-            <div style="margin-bottom: 8px;">
-                {% for error in errors %}
-                    <div class="kr-message kr-message--error">
-                        {{ error }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% elif error %}
-            <div style="margin-bottom: 8px;">
-                <div class="kr-message kr-message--error">
-                    {{ error }}
-                </div>
-            </div>
-        {% endif %}
 
         <label>順序（半角数字入力）</label><br>
 

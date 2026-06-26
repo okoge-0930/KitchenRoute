@@ -23,6 +23,26 @@
         管理者用アカウント新規登録
     </h2>
 
+    {% if field_errors.organization_name or field_errors.username or field_errors.email or field_errors.password or field_errors.password_confirm %}
+        <div class="kr-message-list">
+            {% for error in field_errors.organization_name %}
+                <div class="kr-message kr-message--error">{{ error }}</div>
+            {% endfor %}
+            {% for error in field_errors.username %}
+                <div class="kr-message kr-message--error">{{ error }}</div>
+            {% endfor %}
+            {% for error in field_errors.email %}
+                <div class="kr-message kr-message--error">{{ error }}</div>
+            {% endfor %}
+            {% for error in field_errors.password %}
+                <div class="kr-message kr-message--error">{{ error }}</div>
+            {% endfor %}
+            {% for error in field_errors.password_confirm %}
+                <div class="kr-message kr-message--error">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
     <form method="post" autocomplete="off" data-disable-on-submit>
         {% csrf_token %}
 
@@ -39,13 +59,6 @@
                 box-sizing: border-box;
             "
         >
-        {% if field_errors.organization_name %}
-            <div class="kr-field-errors">
-                {% for error in field_errors.organization_name %}
-                    <div class="kr-message kr-message--error">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
 
         <p style="margin: 18px 0 6px;">名前</p>
         <input
@@ -60,13 +73,6 @@
                 box-sizing: border-box;
             "
         >
-        {% if field_errors.username %}
-            <div class="kr-field-errors">
-                {% for error in field_errors.username %}
-                    <div class="kr-message kr-message--error">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
 
         <p style="margin: 18px 0 6px;">メールアドレス</p>
         <input
@@ -81,13 +87,6 @@
                 box-sizing: border-box;
             "
         >
-        {% if field_errors.email %}
-            <div class="kr-field-errors">
-                {% for error in field_errors.email %}
-                    <div class="kr-message kr-message--error">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
 
         <p style="margin: 18px 0 6px;">パスワード（8文字以上、英数字を含む）</p>
         <input
@@ -101,13 +100,6 @@
                 box-sizing: border-box;
             "
         >
-        {% if field_errors.password %}
-            <div class="kr-field-errors">
-                {% for error in field_errors.password %}
-                    <div class="kr-message kr-message--error">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
 
         <p style="margin: 18px 0 6px;">パスワード（再入力）</p>
         <input
@@ -121,13 +113,6 @@
                 box-sizing: border-box;
             "
         >
-        {% if field_errors.password_confirm %}
-            <div class="kr-field-errors">
-                {% for error in field_errors.password_confirm %}
-                    <div class="kr-message kr-message--error">{{ error }}</div>
-                {% endfor %}
-            </div>
-        {% endif %}
 
         <div style="
             margin-top: 18px;

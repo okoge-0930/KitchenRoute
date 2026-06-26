@@ -12,6 +12,22 @@
         組織コード確認
     </h3>
 
+    {% if errors %}
+        <div class="kr-message-list">
+            {% for error in errors %}
+                <div class="kr-message kr-message--error">
+                    {{ error }}
+                </div>
+            {% endfor %}
+        </div>
+    {% elif error %}
+        <div class="kr-message-list">
+            <div class="kr-message kr-message--error">
+                {{ error }}
+            </div>
+        </div>
+    {% endif %}
+
     <div
         style="
             border: 1px solid #999;
@@ -23,28 +39,6 @@
     >
         登録したメールアドレスとパスワードを入力してください。組織コードを表示します。
     </div>
-
-    {% if errors %}
-        <div style="
-            text-align: left;
-            margin-bottom: 16px;
-        ">
-            {% for error in errors %}
-                <div class="kr-message kr-message--error">
-                    {{ error }}
-                </div>
-            {% endfor %}
-        </div>
-    {% elif error %}
-        <div style="
-            text-align: left;
-            margin-bottom: 16px;
-        ">
-            <div class="kr-message kr-message--error">
-                {{ error }}
-            </div>
-        </div>
-    {% endif %}
 
     <form method="post" data-disable-on-submit>
         {% csrf_token %}

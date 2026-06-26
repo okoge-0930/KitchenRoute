@@ -4,41 +4,24 @@
 
 <div class="kr-page" style="max-width: 420px; margin: 24px auto;">
 
-    {% if messages %}
-        <div style="
-            display: grid;
-            grid-template-columns: 76px minmax(0, 1fr) 76px;
-            align-items: center;
-            column-gap: 8px;
-            margin-bottom: 8px;
-        ">
-            <div aria-hidden="true"></div>
-
-            <div style="
-                min-width: 0;
-                text-align: center;
-            ">
-                {% for message in messages %}
-                    <div
-                        class="kr-message kr-message--success"
-                        style="
-                            overflow: hidden;
-                            text-overflow: ellipsis;
-                            white-space: nowrap;
-                        "
-                    >
-                        ✓ {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-
-            <div aria-hidden="true"></div>
-        </div>
-    {% endif %}
-
     <h2 style="text-align: center;">
         スキル管理
     </h2>
+
+    {% if messages or delete_success_message %}
+        <div class="kr-message-list kr-message-list--center">
+            {% for message in messages %}
+                <div class="kr-message kr-message--success">
+                    ✓ {{ message }}
+                </div>
+            {% endfor %}
+            {% if delete_success_message %}
+                <div class="kr-message kr-message--success">
+                    ✓ {{ delete_success_message }}
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
 
     <h3 style="text-align: center;">
         レシピ一覧
@@ -81,41 +64,5 @@
     {% endif %}
 
 </div>
-
-{% if delete_success_message %}
-    <div
-        id="deleteSuccessModal"
-        style="
-            position: fixed;
-            inset: 0;
-            background-color: rgba(0,0,0,0.4);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-        "
-    >
-        <div style="
-            background: white;
-            width: 300px;
-            border-radius: 8px;
-            padding: 28px 20px;
-            text-align: center;
-            box-sizing: border-box;
-        ">
-            <div class="kr-message" style="margin-bottom: 24px;">
-                {{ delete_success_message }}
-            </div>
-
-            <button
-                class="kr-button"
-                type="button"
-                onclick="closeDeleteSuccessModal()"
-            >
-                OK
-            </button>
-        </div>
-    </div>
-{% endif %}
 
 {% endblock %}

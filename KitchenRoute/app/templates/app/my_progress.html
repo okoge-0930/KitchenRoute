@@ -138,23 +138,15 @@
 
                 <div style="margin-top: 8px;">
                     {% for step_item in item.steps %}
-                        <div style="
-                            display: grid;
-                            grid-template-columns: minmax(0, 1fr) 44px;
-                            align-items: start;
-                            gap: 12px;
+                        <div class="kr-step-status-row" style="
                             margin-bottom: 8px;
                         ">
-                            <span style="word-break: break-word;">
+                            <span class="kr-step-status-name">
                                 No.{{ step_item.step.order }}
                                 {{ step_item.step.name }}
                             </span>
 
-                            <span style="
-                                width: 44px;
-                                text-align: right;
-                                font-weight: bold;
-                            ">
+                            <span class="kr-step-status">
                                 {% if step_item.is_completed %}
                                     合格
                                 {% else %}

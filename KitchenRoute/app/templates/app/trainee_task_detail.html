@@ -27,26 +27,16 @@
 
     {% if steps %}
         {% for step in steps %}
-            <div class="kr-card" style="
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) 44px;
-                align-items: start;
-                gap: 12px;
+            <div class="kr-card kr-step-status-row" style="
                 margin-bottom: 12px;
                 font-size: 14px;
             ">
-                <div style="
-                    word-break: break-word;
-                ">
+                <div class="kr-step-status-name">
                     No.{{ step.order }}
                     {{ step.name }}
                 </div>
 
-                <div style="
-                    width: 44px;
-                    text-align: right;
-                    font-weight: bold;
-                ">
+                <div class="kr-step-status">
                     {% if step.id in completed_step_ids %}
                         合格
                     {% else %}
