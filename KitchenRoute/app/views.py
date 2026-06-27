@@ -16,6 +16,9 @@ import unicodedata
 from django.contrib import messages
 
 
+NO_CHANGES_MESSAGE = "変更前と同じ内容です。"
+
+
 def public_page_context(context=None):
     context = context or {}
     context["hide_app_chrome"] = True
@@ -94,6 +97,18 @@ def step_name_exists_in_recipe(recipe, name, exclude_id=None):
         normalize_duplicate_name(step.name) == target_name
         for step in steps
     )
+
+
+def username_exists_in_organization(organization, username, exclude_id=None):
+    users = User.objects.filter(
+        organization=organization,
+        username=username,
+    )
+
+    if exclude_id:
+        users = users.exclude(id=exclude_id)
+
+    return users.exists()
 
 
 class LoginView(TemplateView):
@@ -686,19 +701,33 @@ class RecipeUpdateView(LoginRequiredMixin, View):
 
         recipe_name = request.POST.get("name", "").strip()
 
+        redirect_to = request.POST.get("next", "")
+
+        if not url_has_allowed_host_and_scheme(
+            redirect_to,
+            allowed_hosts={request.get_host()},
+        ):
+            redirect_to = ""
+
+        if recipe_name == recipe.name:
+            return render(
+                request,
+                "app/recipe_update.html",
+                {
+                    "recipe": recipe,
+                    "redirect_to": redirect_to,
+                    "error": NO_CHANGES_MESSAGE,
+                    "form_values": {
+                        "name": recipe_name,
+                    },
+                },
+            )
+
         if recipe_name_exists_in_organization(
             request.user.organization,
             recipe_name,
             exclude_id=recipe.id,
         ):
-            redirect_to = request.POST.get("next", "")
-
-            if not url_has_allowed_host_and_scheme(
-                redirect_to,
-                allowed_hosts={request.get_host()},
-            ):
-                redirect_to = ""
-
             return render(
                 request,
                 "app/recipe_update.html",
@@ -720,12 +749,7 @@ class RecipeUpdateView(LoginRequiredMixin, View):
             "レシピ名を更新しました。"
         )
 
-        redirect_to = request.POST.get("next", "")
-
-        if url_has_allowed_host_and_scheme(
-            redirect_to,
-            allowed_hosts={request.get_host()},
-        ):
+        if redirect_to:
             return redirect(redirect_to)
 
         return redirect("skill_management")
@@ -824,6 +848,25 @@ class StepUpdateView(TemplateView):
         step_name = request.POST.get("name", "").strip()
 
         if step_order and step_name:
+            if (
+                step_name == step.name
+                and step_order == str(step.order)
+            ):
+                return render(
+                    request,
+                    self.template_name,
+                    {
+                        "step": step,
+                        "errors": [
+                            NO_CHANGES_MESSAGE,
+                        ],
+                        "form_values": {
+                            "order": step_order,
+                            "name": step_name,
+                        },
+                    },
+                )
+
             errors = []
 
             if Step.objects.filter(
@@ -1133,11 +1176,23 @@ class AccountUsernameUpdateView(LoginRequiredMixin,TemplateView):
                 },
             )
 
-        if User.objects.filter(
-            username=username
-        ).exclude(
-            id=request.user.id
-        ).exists():
+        if username == request.user.username:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "errors": [
+                        NO_CHANGES_MESSAGE,
+                    ],
+                    "current_username": request.user.username,
+                },
+            )
+
+        if username_exists_in_organization(
+            request.user.organization,
+            username,
+            exclude_id=request.user.id,
+        ):
             return render(
                 request,
                 self.template_name,
@@ -1212,6 +1267,18 @@ class AccountEmailUpdateView(LoginRequiredMixin,TemplateView):
                 {
                     "errors": [
                         "正しいメールアドレス形式で入力してください。",
+                    ],
+                    "current_email": request.user.email,
+                },
+            )
+
+        if email == request.user.email:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "errors": [
+                        NO_CHANGES_MESSAGE,
                     ],
                     "current_email": request.user.email,
                 },
@@ -1338,11 +1405,6 @@ class AdminRegisterView(TemplateView):
                 "この組織名はすでに登録されています。"
             )
 
-        if User.objects.filter(username=username).exists():
-            field_errors.setdefault("username", []).append(
-                "この名前はすでに登録されています。"
-            )
-
         if User.objects.filter(email=email).exists():
             field_errors.setdefault("email", []).append(
                 "このメールアドレスはすでに登録されています。"
@@ -1459,7 +1521,10 @@ class GeneralRegisterView(TemplateView):
                 "組織コードが正しくありません。"
             )
 
-        if User.objects.filter(username=username).exists():
+        if organization and username_exists_in_organization(
+            organization,
+            username,
+        ):
             field_errors.setdefault("username", []).append(
                 "この名前はすでに登録されています。"
             )

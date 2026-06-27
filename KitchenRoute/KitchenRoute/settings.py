@@ -126,6 +126,14 @@ STATIC_URL = 'static/'
 
 AUTH_USER_MODEL = "app.User"
 
+AUTHENTICATION_BACKENDS = [
+    "app.backends.OrganizationScopedModelBackend",
+]
+
+SILENCED_SYSTEM_CHECKS = [
+    "auth.W004",
+]
+
 LOGIN_REDIRECT_URL = "/"
 
 LOGIN_URL = "/login/"

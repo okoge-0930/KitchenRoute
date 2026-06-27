@@ -6,6 +6,12 @@ from datetime import timedelta
 from .models import Organization, Progress, Recipe, Step, User
 
 
+def assert_message_between_title_and_form(test_case, response, title, message):
+    html = response.content.decode()
+    test_case.assertLess(html.index(title), html.index(message))
+    test_case.assertLess(html.index(message), html.index("<form"))
+
+
 class TraineeDetailViewTests(TestCase):
     def setUp(self):
         self.organization = Organization.objects.create(
@@ -403,6 +409,24 @@ class RegistrationValidationTests(TestCase):
             name="登録テスト店舗",
             organization_code="REG001",
         )
+        self.other_organization = Organization.objects.create(
+            name="別登録テスト店舗",
+            organization_code="REG002",
+        )
+        User.objects.create_user(
+            username="registered_user",
+            email="registered@example.com",
+            password="abc12345",
+            role=User.Role.TRAINEE,
+            organization=self.organization,
+        )
+        User.objects.create_user(
+            username="shared_user",
+            email="shared@example.com",
+            password="abc12345",
+            role=User.Role.TRAINEE,
+            organization=self.other_organization,
+        )
 
     def test_admin_register_shows_all_password_errors_and_keeps_inputs(self):
         response = self.client.post(
@@ -506,6 +530,76 @@ class RegistrationValidationTests(TestCase):
         self.assertContains(done_response, reverse("admin_home"))
         self.assertNotContains(done_response, "None")
 
+    def test_admin_register_allows_name_used_in_other_organization(self):
+        response = self.client.post(
+            reverse("admin_register"),
+            {
+                "organization_name": "別名許可店舗",
+                "username": "shared_user",
+                "email": "new_shared_admin@example.com",
+                "password": "abc12345",
+                "password_confirm": "abc12345",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("admin_register_done"),
+            fetch_redirect_response=False,
+        )
+        self.assertTrue(
+            User.objects.filter(
+                organization__name="別名許可店舗",
+                username="shared_user",
+            ).exists()
+        )
+
+    def test_general_register_rejects_duplicate_name_in_same_organization(self):
+        response = self.client.post(
+            reverse("general_register"),
+            {
+                "organization_code": "REG001",
+                "username": "registered_user",
+                "email": "duplicate_name@example.com",
+                "password": "abc12345",
+                "password_confirm": "abc12345",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "この名前はすでに登録されています。")
+        self.assertEqual(
+            User.objects.filter(
+                organization=self.organization,
+                username="registered_user",
+            ).count(),
+            1,
+        )
+
+    def test_general_register_allows_name_used_in_other_organization(self):
+        response = self.client.post(
+            reverse("general_register"),
+            {
+                "organization_code": "REG001",
+                "username": "shared_user",
+                "email": "new_shared_general@example.com",
+                "password": "abc12345",
+                "password_confirm": "abc12345",
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("general_register_done"),
+            fetch_redirect_response=False,
+        )
+        self.assertTrue(
+            User.objects.filter(
+                organization=self.organization,
+                username="shared_user",
+            ).exists()
+        )
+
 
 class RecipeNameValidationTests(TestCase):
     def setUp(self):
@@ -602,7 +696,7 @@ class RecipeNameValidationTests(TestCase):
             ).exists()
         )
 
-    def test_recipe_update_allows_unchanged_name_and_rejects_other_recipe_name(self):
+    def test_recipe_update_shows_no_change_message_and_rejects_other_recipe_name(self):
         unchanged_response = self.client.post(
             reverse("recipe_update", args=[self.recipe.id]),
             {
@@ -610,10 +704,16 @@ class RecipeNameValidationTests(TestCase):
             },
         )
 
-        self.assertRedirects(
+        self.assertEqual(unchanged_response.status_code, 200)
+        self.assertContains(
             unchanged_response,
-            reverse("skill_management"),
-            fetch_redirect_response=False,
+            "変更前と同じ内容です。",
+        )
+        assert_message_between_title_and_form(
+            self,
+            unchanged_response,
+            "レシピ編集",
+            "変更前と同じ内容です。",
         )
 
         duplicate_response = self.client.post(
@@ -724,7 +824,7 @@ class StepNameValidationTests(TestCase):
             ).exists()
         )
 
-    def test_step_update_allows_unchanged_name_and_rejects_other_step_name(self):
+    def test_step_update_shows_no_change_message_and_rejects_other_step_name(self):
         unchanged_response = self.client.post(
             reverse("step_update", args=[self.step.id]),
             {
@@ -733,10 +833,16 @@ class StepNameValidationTests(TestCase):
             },
         )
 
-        self.assertRedirects(
+        self.assertEqual(unchanged_response.status_code, 200)
+        self.assertContains(
             unchanged_response,
-            reverse("step_management", args=[self.recipe.id]),
-            fetch_redirect_response=False,
+            "変更前と同じ内容です。",
+        )
+        assert_message_between_title_and_form(
+            self,
+            unchanged_response,
+            "工程編集",
+            "変更前と同じ内容です。",
         )
 
         duplicate_response = self.client.post(
@@ -755,12 +861,52 @@ class StepNameValidationTests(TestCase):
             "同じ工程名が既に登録されています。",
         )
 
+    def test_step_update_changes_name_only(self):
+        response = self.client.post(
+            reverse("step_update", args=[self.step.id]),
+            {
+                "order": "1",
+                "name": "成形",
+            },
+        )
+
+        self.step.refresh_from_db()
+        self.assertEqual(self.step.order, 1)
+        self.assertEqual(self.step.name, "成形")
+        self.assertRedirects(
+            response,
+            reverse("step_management", args=[self.recipe.id]),
+            fetch_redirect_response=False,
+        )
+
+    def test_step_update_changes_order_only(self):
+        response = self.client.post(
+            reverse("step_update", args=[self.step.id]),
+            {
+                "order": "3",
+                "name": "計量",
+            },
+        )
+
+        self.step.refresh_from_db()
+        self.assertEqual(self.step.order, 3)
+        self.assertEqual(self.step.name, "計量")
+        self.assertRedirects(
+            response,
+            reverse("step_management", args=[self.recipe.id]),
+            fetch_redirect_response=False,
+        )
+
 
 class AccountUpdateValidationTests(TestCase):
     def setUp(self):
         self.organization = Organization.objects.create(
             name="アカウント変更テスト店舗",
             organization_code="ACC001",
+        )
+        self.other_organization = Organization.objects.create(
+            name="別アカウント変更テスト店舗",
+            organization_code="ACC002",
         )
         self.user = User.objects.create_user(
             username="account_user",
@@ -776,6 +922,13 @@ class AccountUpdateValidationTests(TestCase):
             role=User.Role.TRAINEE,
             organization=self.organization,
         )
+        User.objects.create_user(
+            username="shared_name",
+            email="shared-name@example.com",
+            password="abc12345",
+            role=User.Role.TRAINEE,
+            organization=self.other_organization,
+        )
         self.client.force_login(self.user)
 
     def test_username_update_requires_value(self):
@@ -788,6 +941,54 @@ class AccountUpdateValidationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "ユーザー名を入力してください。")
+
+    def test_username_update_shows_no_change_message(self):
+        response = self.client.post(
+            reverse("account_username_update"),
+            {
+                "username": "account_user",
+            },
+        )
+
+        self.user.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.user.username, "account_user")
+        self.assertContains(response, "変更前と同じ内容です。")
+        assert_message_between_title_and_form(
+            self,
+            response,
+            "名前変更",
+            "変更前と同じ内容です。",
+        )
+
+    def test_username_update_rejects_duplicate_name_in_same_organization(self):
+        response = self.client.post(
+            reverse("account_username_update"),
+            {
+                "username": "other_user",
+            },
+        )
+
+        self.user.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.user.username, "account_user")
+        self.assertContains(response, "この名前はすでに登録されています。")
+
+    def test_username_update_allows_name_used_in_other_organization(self):
+        response = self.client.post(
+            reverse("account_username_update"),
+            {
+                "username": "shared_name",
+            },
+        )
+
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.username, "shared_name")
+        self.assertRedirects(
+            response,
+            reverse("account"),
+            fetch_redirect_response=False,
+        )
 
     def test_email_update_validation_messages(self):
         invalid_response = self.client.post(
@@ -810,6 +1011,25 @@ class AccountUpdateValidationTests(TestCase):
         self.assertContains(
             duplicate_response,
             "このメールアドレスは既に使用されています。",
+        )
+
+    def test_email_update_shows_no_change_message(self):
+        response = self.client.post(
+            reverse("account_email_update"),
+            {
+                "email": "account@example.com",
+            },
+        )
+
+        self.user.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.user.email, "account@example.com")
+        self.assertContains(response, "変更前と同じ内容です。")
+        assert_message_between_title_and_form(
+            self,
+            response,
+            "メールアドレス変更",
+            "変更前と同じ内容です。",
         )
 
     def test_password_update_shows_specific_errors(self):

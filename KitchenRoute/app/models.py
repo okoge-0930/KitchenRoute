@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.conf import settings
 
 
@@ -22,6 +23,21 @@ class Organization(models.Model):
 
 class User(AbstractUser):
     """ログインするユーザーを表します。新人・教育者・管理者をroleで分けます。"""
+
+    username_validator = UnicodeUsernameValidator()
+
+    username = models.CharField(
+        "username",
+        max_length=150,
+        help_text=(
+            "Required. 150 characters or fewer. Letters, digits and "
+            "@/./+/-/_ only."
+        ),
+        validators=[username_validator],
+        error_messages={
+            "unique": "A user with that username already exists.",
+        },
+    )
 
     class Role(models.IntegerChoices):
         # 0: 新人。自分の進捗や次に習得すべき工程を確認します。
@@ -49,6 +65,12 @@ class User(AbstractUser):
     class Meta:
         # Django標準のauth_userではなく、指定されたusersテーブルを使います。
         db_table = "users"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["organization", "username"],
+                name="unique_user_name_per_organization",
+            ),
+        ]
 
     def is_trainee(self):
         # 新人かどうかを判定します。ビューでroleの数字を直接書かずに済みます。
