@@ -1,9 +1,12 @@
 from django.urls import path
-from django.contrib.auth import views as auth_views
 from .views import (
     LoginView,
     OrganizationCodeConfirmView,
     OrganizationCodeConfirmDoneView,
+    PasswordResetRequestView,
+    PasswordResetDoneView,
+    PasswordResetConfirmCustomView,
+    PasswordResetCompleteView,
     HomeView,
     EducatorHomeView,
     TraineeHomeView,
@@ -121,38 +124,23 @@ urlpatterns = [
 ),
     path(
     "password-reset/",
-    auth_views.PasswordResetView.as_view(
-        template_name="app/password_reset.html",
-        email_template_name="app/password_reset_email.txt",
-        success_url="/password-reset/done/",
-        extra_context={"hide_app_chrome": True},
-    ),
+    PasswordResetRequestView.as_view(),
     name="password_reset",
 ),
     path(
     "password-reset/done/",
-    auth_views.PasswordResetDoneView.as_view(
-        template_name="app/password_reset_done.html",
-        extra_context={"hide_app_chrome": True},
-    ),
+    PasswordResetDoneView.as_view(),
     name="password_reset_done",
 ),
     path(
     "reset/<uidb64>/<token>/",
-    auth_views.PasswordResetConfirmView.as_view(
-        template_name="app/password_reset_confirm.html",
-        success_url="/reset/done/",
-        extra_context={"hide_app_chrome": True},
-    ),
+    PasswordResetConfirmCustomView.as_view(),
     name="password_reset_confirm",
 ),
 
     path(
     "reset/done/",
-    auth_views.PasswordResetCompleteView.as_view(
-        template_name="app/password_reset_complete.html",
-        extra_context={"hide_app_chrome": True},
-    ),
+    PasswordResetCompleteView.as_view(),
     name="password_reset_complete",
 ),
     path(

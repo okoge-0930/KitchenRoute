@@ -20,13 +20,42 @@
 
     <p style="
         font-size: 22px;
-        margin: 0 0 28px;
+        margin: 0 0 12px;
         line-height: 1.6;
         font-weight: bold;
         word-break: break-word;
-    ">
+    " data-organization-code>
         {{ organization_code }}
     </p>
+
+    <div style="text-align: center; margin-bottom: 12px;">
+        <button
+            class="kr-button"
+            type="button"
+            data-copy-organization-code
+            style="
+                background-color: #f2c94c;
+                border: 1px solid #999;
+                padding: 8px 20px;
+                min-width: 96px;
+            "
+        >
+            コピー
+        </button>
+    </div>
+
+    <div
+        class="kr-message-list kr-message-list--center"
+        data-copy-success-message
+        style="
+            display: none;
+            margin-bottom: 20px;
+        "
+    >
+        <div class="kr-message kr-message--success">
+            コピーしました。
+        </div>
+    </div>
 
     <p style="
         line-height: 1.8;
@@ -44,5 +73,46 @@
     </p>
 
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const copyButton = document.querySelector("[data-copy-organization-code]");
+        const successMessage = document.querySelector("[data-copy-success-message]");
+        const organizationCode = "{{ organization_code|escapejs }}";
+
+        function showSuccessMessage() {
+            successMessage.style.display = "block";
+        }
+
+        function copyWithFallback() {
+            const textarea = document.createElement("textarea");
+            textarea.value = organizationCode;
+            textarea.setAttribute("readonly", "");
+            textarea.style.position = "fixed";
+            textarea.style.top = "-1000px";
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                if (document.execCommand("copy")) {
+                    showSuccessMessage();
+                }
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        }
+
+        copyButton.addEventListener("click", function () {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(organizationCode)
+                    .then(showSuccessMessage)
+                    .catch(copyWithFallback);
+                return;
+            }
+
+            copyWithFallback();
+        });
+    });
+</script>
 
 {% endblock %}

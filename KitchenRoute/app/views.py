@@ -1,8 +1,20 @@
 from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.mail import EmailMessage
 from django.core.validators import validate_email
 from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404, render
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.crypto import constant_time_compare
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import (
+    base36_to_int,
+    urlsafe_base64_decode,
+    urlsafe_base64_encode,
+)
 from django.views.generic import TemplateView
 from .models import Progress, Recipe, Step, User, Organization
 from django.utils import timezone
@@ -109,6 +121,61 @@ def username_exists_in_organization(organization, username, exclude_id=None):
         users = users.exclude(id=exclude_id)
 
     return users.exists()
+
+
+def password_reset_url(request, uidb64, token):
+    path = reverse(
+        "password_reset_confirm",
+        kwargs={
+            "uidb64": uidb64,
+            "token": token,
+        },
+    )
+    base_url = settings.PASSWORD_RESET_BASE_URL.rstrip("/")
+
+    if base_url:
+        return f"{base_url}{path}"
+
+    return request.build_absolute_uri(path)
+
+
+def password_reset_token_expired(user, token):
+    try:
+        ts_b36 = token.split("-", 1)[0]
+        token_seconds = base36_to_int(ts_b36)
+    except (IndexError, ValueError):
+        return False
+
+    for secret in [
+        default_token_generator.secret,
+        *getattr(default_token_generator, "secret_fallbacks", []),
+    ]:
+        if constant_time_compare(
+            default_token_generator._make_token_with_timestamp(
+                user,
+                token_seconds,
+                secret,
+            ),
+            token,
+        ):
+            break
+    else:
+        return False
+
+    now_seconds = default_token_generator._num_seconds(
+        default_token_generator._now()
+    )
+
+    return now_seconds - token_seconds > settings.PASSWORD_RESET_TIMEOUT
+
+
+def password_reset_user(uidb64):
+    try:
+        user_id = force_str(urlsafe_base64_decode(uidb64))
+    except Exception:
+        return None
+
+    return User.objects.filter(pk=user_id).first()
 
 
 class LoginView(TemplateView):
@@ -272,6 +339,202 @@ class OrganizationCodeConfirmDoneView(TemplateView):
 
         return public_page_context(context)
     
+
+class PasswordResetRequestView(TemplateView):
+    template_name = "app/password_reset.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return public_page_context(context)
+
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get("email", "").strip()
+        errors = []
+
+        if not email:
+            errors.append("メールアドレスを入力してください。")
+        else:
+            try:
+                validate_email(email)
+            except ValidationError:
+                errors.append("正しいメールアドレス形式で入力してください。")
+
+        user = None
+
+        if not errors:
+            user = User.objects.filter(email__iexact=email).first()
+
+            if user is None:
+                errors.append("入力されたメールアドレスは登録されていません。")
+
+        if errors:
+            return render(
+                request,
+                self.template_name,
+                public_page_context(
+                    {
+                        "errors": errors,
+                        "form_values": {
+                            "email": email,
+                        },
+                    }
+                ),
+            )
+
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
+        reset_url = password_reset_url(request, uidb64, token)
+        body = render_to_string(
+            "app/password_reset_email.txt",
+            {
+                "user": user,
+                "email": user.email,
+                "reset_url": reset_url,
+            },
+        )
+
+        try:
+            EmailMessage(
+                "KitchenRoute パスワード再設定",
+                body,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+            ).send(fail_silently=False)
+        except Exception:
+            return render(
+                request,
+                self.template_name,
+                public_page_context(
+                    {
+                        "errors": [
+                            "メール送信に失敗しました。時間をおいて再度お試しください。",
+                        ],
+                        "form_values": {
+                            "email": email,
+                        },
+                    }
+                ),
+            )
+
+        messages.success(
+            request,
+            "パスワード再設定メールを送信しました。"
+        )
+
+        return redirect("password_reset_done")
+
+
+class PasswordResetDoneView(TemplateView):
+    template_name = "app/password_reset_done.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return public_page_context(context)
+
+
+class PasswordResetConfirmCustomView(TemplateView):
+    template_name = "app/password_reset_confirm.html"
+
+    def invalid_context(self, message):
+        return public_page_context(
+            {
+                "errors": [
+                    message,
+                ],
+                "validlink": False,
+            }
+        )
+
+    def user_and_error(self, uidb64, token):
+        user = password_reset_user(uidb64)
+
+        if user is None:
+            return None, "パスワード再設定URLが無効です。"
+
+        if default_token_generator.check_token(user, token):
+            return user, ""
+
+        if password_reset_token_expired(user, token):
+            return None, "パスワード再設定URLの有効期限が切れています。"
+
+        return None, "パスワード再設定URLが無効です。"
+
+    def get(self, request, uidb64, token, *args, **kwargs):
+        user, error = self.user_and_error(uidb64, token)
+
+        if error:
+            return render(
+                request,
+                self.template_name,
+                self.invalid_context(error),
+            )
+
+        return render(
+            request,
+            self.template_name,
+            public_page_context(
+                {
+                    "validlink": True,
+                }
+            ),
+        )
+
+    def post(self, request, uidb64, token, *args, **kwargs):
+        user, error = self.user_and_error(uidb64, token)
+
+        if error:
+            return render(
+                request,
+                self.template_name,
+                self.invalid_context(error),
+            )
+
+        password = request.POST.get("new_password1", "")
+        password_confirm = request.POST.get("new_password2", "")
+        errors = []
+
+        if not password:
+            errors.append("パスワードを入力してください。")
+        elif not password_confirm:
+            errors.append("確認用パスワードを入力してください。")
+        else:
+            field_errors = password_validation_errors(
+                password,
+                password_confirm,
+            )
+            errors.extend(field_errors["password"])
+            errors.extend(field_errors["password_confirm"])
+
+        if errors:
+            return render(
+                request,
+                self.template_name,
+                public_page_context(
+                    {
+                        "errors": errors,
+                        "validlink": True,
+                    }
+                ),
+            )
+
+        user.set_password(password)
+        user.save()
+
+        messages.success(
+            request,
+            "パスワードを変更しました。"
+        )
+
+        return redirect("password_reset_complete")
+
+
+class PasswordResetCompleteView(TemplateView):
+    template_name = "app/password_reset_complete.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return public_page_context(context)
+
 
 class EducatorHomeView(LoginRequiredMixin, TemplateView):
     template_name = "app/educator_home.html"

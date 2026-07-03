@@ -153,8 +153,8 @@
         .kr-button--cancel,
         .kr-action-button.kr-button--cancel,
         main button.kr-button--cancel {
-            background-color: #2f80ed !important;
-            color: white !important;
+            background-color: #ddd !important;
+            color: #333 !important;
         }
 
         .kr-pass-button,
@@ -398,6 +398,34 @@
 <script>
     let targetForm = null;
     let targetUrl = null;
+    let targetElement = null;
+    let confirmYesLabel = "はい";
+    let confirmNoLabel = "いいえ";
+    let confirmProcessingLabel = "処理中…";
+
+    function resetConfirmModalButtons() {
+        const yesButton = document.getElementById("confirmYes");
+        const noButton = document.getElementById("confirmNo");
+
+        yesButton.disabled = false;
+        yesButton.textContent = confirmYesLabel;
+        noButton.disabled = false;
+        noButton.textContent = confirmNoLabel;
+    }
+
+    function closeConfirmModal() {
+        document.getElementById("confirmModal").style.display =
+            "none";
+
+        resetConfirmModalButtons();
+
+        targetForm = null;
+        targetUrl = null;
+        targetElement = null;
+        confirmYesLabel = "はい";
+        confirmNoLabel = "いいえ";
+        confirmProcessingLabel = "処理中…";
+    }
 
     document.addEventListener("DOMContentLoaded", function () {
 
@@ -459,9 +487,20 @@
 
                 const yesButton =
                     document.getElementById("confirmYes");
+                const noButton =
+                    document.getElementById("confirmNo");
+
+                confirmYesLabel =
+                    element.dataset.confirmYesLabel || "はい";
+                confirmNoLabel =
+                    element.dataset.confirmNoLabel || "いいえ";
+                confirmProcessingLabel =
+                    element.dataset.confirmProcessingLabel || "処理中…";
 
                 yesButton.disabled = false;
-                yesButton.textContent = "はい";
+                yesButton.textContent = confirmYesLabel;
+                noButton.disabled = false;
+                noButton.textContent = confirmNoLabel;
 
                 if (confirmType === "warning") {
                     yesButton.classList.remove("kr-button--danger");
@@ -483,6 +522,7 @@
 
                 targetForm = element.closest("form");
                 targetUrl = element.getAttribute("href");
+                targetElement = element;
 
                 document.getElementById("confirmModal").style.display =
                     "flex";
@@ -494,8 +534,31 @@
             .addEventListener("click", function () {
 
             const yesButton = document.getElementById("confirmYes");
+            const noButton = document.getElementById("confirmNo");
             yesButton.disabled = true;
-            yesButton.textContent = "処理中…";
+            yesButton.textContent = confirmProcessingLabel;
+            noButton.disabled = true;
+
+            if (targetElement) {
+                const confirmEvent = new CustomEvent(
+                    "kr:confirmed",
+                    {
+                        cancelable: true,
+                        detail: {
+                            closeModal: closeConfirmModal,
+                            resetButtons: resetConfirmModalButtons,
+                            yesButton: yesButton,
+                            noButton: noButton,
+                        },
+                    }
+                );
+
+                targetElement.dispatchEvent(confirmEvent);
+
+                if (confirmEvent.defaultPrevented) {
+                    return;
+                }
+            }
 
             if (targetForm) {
                 document.getElementById("confirmModal").style.display =
@@ -515,14 +578,7 @@
         document.getElementById("confirmNo")
             .addEventListener("click", function () {
 
-            document.getElementById("confirmModal").style.display =
-                "none";
-
-            document.getElementById("confirmYes").disabled = false;
-            document.getElementById("confirmYes").textContent = "はい";
-
-            targetForm = null;
-            targetUrl = null;
+            closeConfirmModal();
 
         });
 

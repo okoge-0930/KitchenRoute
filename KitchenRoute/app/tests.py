@@ -1,9 +1,21 @@
+import re
 from django.test import TestCase
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from datetime import timedelta
+from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
+from django.core.mail.backends.base import BaseEmailBackend
 
 from .models import Organization, Progress, Recipe, Step, User
+
+
+class FailingEmailBackend(BaseEmailBackend):
+    def send_messages(self, email_messages):
+        raise Exception("send failed")
 
 
 def assert_message_between_title_and_form(test_case, response, title, message):
@@ -129,6 +141,22 @@ class TraineeDetailViewTests(TestCase):
                 step=self.low_step_2,
             ).exists()
         )
+
+    def test_pass_button_shows_confirmation_modal_without_browser_alert(self):
+        response = self.client.get(
+            reverse("trainee_detail", args=[self.trainee.id])
+        )
+
+        self.assertContains(response, "確認")
+        self.assertContains(response, "この工程を合格として登録しますか？")
+        self.assertContains(response, "登録後は取り消せません。")
+        self.assertContains(response, "登録")
+        self.assertContains(response, "キャンセル")
+        self.assertContains(response, "処理中…")
+        self.assertContains(response, "button.disabled = true;")
+        self.assertContains(response, "button.disabled = false;")
+        self.assertNotContains(response, "alert(")
+        self.assertNotContains(response, "confirm(")
 
 
 class RecipeUpdateViewTests(TestCase):
@@ -401,6 +429,191 @@ class OrganizationCodeConfirmTests(TestCase):
         )
         self.assertContains(done_response, "ログイン画面へ")
         self.assertNotContains(done_response, "None")
+        self.assertContains(done_response, "data-copy-organization-code")
+        self.assertContains(done_response, "コピー")
+        self.assertContains(done_response, "コピーしました。")
+
+
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    DEFAULT_FROM_EMAIL="noreply@example.com",
+    PASSWORD_RESET_BASE_URL="https://example.com",
+)
+class PasswordResetFlowTests(TestCase):
+    def setUp(self):
+        mail.outbox = []
+        self.organization = Organization.objects.create(
+            name="パスワード再設定店舗",
+            organization_code="RESET001",
+        )
+        self.user = User.objects.create_user(
+            username="reset_user",
+            email="reset@example.com",
+            password="abc12345",
+            role=User.Role.TRAINEE,
+            organization=self.organization,
+        )
+
+    def test_password_reset_request_validation_messages(self):
+        empty_response = self.client.post(
+            reverse("password_reset"),
+            {
+                "email": "",
+            },
+        )
+        invalid_response = self.client.post(
+            reverse("password_reset"),
+            {
+                "email": "invalid-email",
+            },
+        )
+        missing_response = self.client.post(
+            reverse("password_reset"),
+            {
+                "email": "missing@example.com",
+            },
+        )
+
+        self.assertContains(empty_response, "メールアドレスを入力してください。")
+        self.assertContains(
+            invalid_response,
+            "正しいメールアドレス形式で入力してください。",
+        )
+        self.assertContains(
+            missing_response,
+            "入力されたメールアドレスは登録されていません。",
+        )
+
+    @override_settings(EMAIL_BACKEND="app.tests.FailingEmailBackend")
+    def test_password_reset_request_shows_send_failure(self):
+        response = self.client.post(
+            reverse("password_reset"),
+            {
+                "email": self.user.email,
+            },
+        )
+
+        self.assertContains(
+            response,
+            "メール送信に失敗しました。時間をおいて再度お試しください。",
+        )
+
+    def test_password_reset_email_link_changes_password_and_allows_login(self):
+        response = self.client.post(
+            reverse("password_reset"),
+            {
+                "email": self.user.email,
+            },
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("password_reset_done"),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("KitchenRoute パスワード再設定", mail.outbox[0].subject)
+
+        reset_path = re.search(
+            r"https://example.com(?P<path>/reset/[^/]+/[^/]+/)",
+            mail.outbox[0].body,
+        ).group("path")
+
+        reset_response = self.client.get(reset_path)
+        self.assertContains(reset_response, "新しいパスワード")
+
+        rule_response = self.client.post(
+            reset_path,
+            {
+                "new_password1": "aaaaa",
+                "new_password2": "aaaaa",
+            },
+        )
+        mismatch_response = self.client.post(
+            reset_path,
+            {
+                "new_password1": "abc12345",
+                "new_password2": "abc12346",
+            },
+        )
+        empty_response = self.client.post(
+            reset_path,
+            {
+                "new_password1": "",
+                "new_password2": "",
+            },
+        )
+
+        self.assertContains(
+            rule_response,
+            "パスワードは8文字以上で入力してください。",
+        )
+        self.assertContains(rule_response, "パスワードには数字を含めてください。")
+        self.assertContains(mismatch_response, "パスワードが一致しません。")
+        self.assertContains(empty_response, "パスワードを入力してください。")
+
+        complete_response = self.client.post(
+            reset_path,
+            {
+                "new_password1": "newpass123",
+                "new_password2": "newpass123",
+            },
+        )
+
+        self.assertRedirects(
+            complete_response,
+            reverse("password_reset_complete"),
+            fetch_redirect_response=False,
+        )
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.check_password("newpass123"))
+
+        login_response = self.client.post(
+            reverse("login"),
+            {
+                "organization_code": self.organization.organization_code,
+                "email": self.user.email,
+                "password": "newpass123",
+            },
+        )
+
+        self.assertRedirects(
+            login_response,
+            reverse("trainee_home"),
+            fetch_redirect_response=False,
+        )
+
+    def test_password_reset_invalid_and_expired_url_messages(self):
+        invalid_response = self.client.get(
+            reverse(
+                "password_reset_confirm",
+                args=[
+                    "invalid-uid",
+                    "invalid-token",
+                ],
+            )
+        )
+
+        self.assertContains(invalid_response, "パスワード再設定URLが無効です。")
+
+        uidb64 = urlsafe_base64_encode(force_bytes(self.user.pk))
+        token = default_token_generator.make_token(self.user)
+
+        with override_settings(PASSWORD_RESET_TIMEOUT=-1):
+            expired_response = self.client.get(
+                reverse(
+                    "password_reset_confirm",
+                    args=[
+                        uidb64,
+                        token,
+                    ],
+                )
+            )
+
+        self.assertContains(
+            expired_response,
+            "パスワード再設定URLの有効期限が切れています。",
+        )
 
 
 class RegistrationValidationTests(TestCase):

@@ -8,6 +8,15 @@
         {{ trainee.username }}さんの進捗
     </h2>
 
+    <div
+        class="kr-message kr-message--error"
+        data-pass-error
+        style="
+            display: none;
+            margin-bottom: 12px;
+        "
+    ></div>
+
     <h3 style="text-align: left;">
         ▪︎ 未完了（進捗低い順）
     </h3>
@@ -113,8 +122,15 @@
 
                                         <button
                                             class="kr-button kr-pass-button"
-                                            type="submit"
+                                            type="button"
                                             data-pass-button
+                                            data-confirm-title="確認"
+                                            data-confirm-message="この工程を合格として登録しますか？
+
+登録後は取り消せません。"
+                                            data-confirm-type="warning"
+                                            data-confirm-yes-label="登録"
+                                            data-confirm-no-label="キャンセル"
                                             style="
                                                 background-color: #f2c94c;
                                                 border: 1px solid #999;
@@ -171,17 +187,29 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelectorAll("[data-pass-form]").forEach(function (form) {
-            form.addEventListener("submit", function (event) {
-                event.preventDefault();
+            const button = form.querySelector("[data-pass-button]");
+            let submitting = false;
 
-                const button = form.querySelector("[data-pass-button]");
+            function submitPassedStep(modalDetail) {
+                if (submitting) {
+                    return;
+                }
+
+                submitting = true;
+
                 const stepRow = form.closest("[data-step-row]");
                 const recipeCard = form.closest("[data-recipe-progress-card]");
                 const progressRate = recipeCard.querySelector("[data-progress-rate]");
                 const recordedBy = stepRow.querySelector("[data-recorded-by]");
                 const recordedByName = stepRow.querySelector("[data-recorded-by-name]");
+                const passError = document.querySelector("[data-pass-error]");
                 const formData = new FormData(form);
                 const recipeCardTop = recipeCard.getBoundingClientRect().top;
+
+                if (passError) {
+                    passError.textContent = "";
+                    passError.style.display = "none";
+                }
 
                 button.disabled = true;
 
@@ -216,11 +244,34 @@
                                 recipeCard.getBoundingClientRect().top - recipeCardTop
                             );
                         });
+                        if (modalDetail && modalDetail.closeModal) {
+                            modalDetail.closeModal();
+                        }
                     })
                     .catch(function () {
+                        submitting = false;
                         button.disabled = false;
-                        alert("合格登録に失敗しました。時間をおいて再度お試しください。");
+
+                        if (modalDetail && modalDetail.closeModal) {
+                            modalDetail.closeModal();
+                        }
+
+                        if (passError) {
+                            passError.textContent =
+                                "合格登録に失敗しました。時間をおいて再度お試しください。";
+                            passError.style.display = "block";
+                        }
                     });
+            }
+
+            button.addEventListener("kr:confirmed", function (event) {
+                event.preventDefault();
+                submitPassedStep(event.detail);
+            });
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault();
+                button.click();
             });
         });
     });
