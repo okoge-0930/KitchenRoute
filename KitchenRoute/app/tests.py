@@ -220,6 +220,16 @@ class RecipeUpdateViewTests(TestCase):
             fetch_redirect_response=False,
         )
 
+    def test_submit_button_state_is_reset_after_history_restore(self):
+        response = self.client.get(
+            reverse("recipe_update", args=[self.recipe.id])
+        )
+
+        self.assertContains(response, "data-disable-on-submit")
+        self.assertContains(response, "window.addEventListener(\"pageshow\"")
+        self.assertContains(response, "resetDisableOnSubmitForms")
+        self.assertContains(response, "button.dataset.originalText")
+
     def test_recipe_delete_redirects_to_recipe_list(self):
         response = self.client.post(
             reverse("recipe_delete", args=[self.recipe.id])
@@ -430,8 +440,55 @@ class OrganizationCodeConfirmTests(TestCase):
         self.assertContains(done_response, "ログイン画面へ")
         self.assertNotContains(done_response, "None")
         self.assertContains(done_response, "data-copy-organization-code")
+        self.assertContains(done_response, "kr-button kr-button--secondary")
         self.assertContains(done_response, "コピー")
         self.assertContains(done_response, "コピーしました。")
+        self.assertNotContains(done_response, "kr-message-list--center")
+
+
+class SuccessMessageLayoutTests(TestCase):
+    def setUp(self):
+        self.organization = Organization.objects.create(
+            name="成功メッセージ表示テスト店舗",
+            organization_code="SUCCESS001",
+        )
+        self.educator = User.objects.create_user(
+            username="success_educator",
+            password="password",
+            role=User.Role.EDUCATOR,
+            organization=self.organization,
+        )
+        self.recipe = Recipe.objects.create(
+            organization=self.organization,
+            name="成功表示レシピ",
+        )
+        self.client.force_login(self.educator)
+
+    def test_success_messages_are_left_aligned_under_titles(self):
+        recipe_response = self.client.post(
+            reverse("recipe_update", args=[self.recipe.id]),
+            {
+                "name": "成功表示レシピ更新",
+            },
+            follow=True,
+        )
+
+        self.assertContains(recipe_response, "レシピ名を更新しました。")
+        self.assertContains(recipe_response, 'class="kr-message-list"')
+        self.assertNotContains(recipe_response, "kr-message-list--center")
+
+        step_response = self.client.post(
+            reverse("step_create", args=[self.recipe.id]),
+            {
+                "order": "1",
+                "name": "成功表示工程",
+            },
+            follow=True,
+        )
+
+        self.assertContains(step_response, "工程を登録しました。")
+        self.assertContains(step_response, 'class="kr-message-list"')
+        self.assertNotContains(step_response, "kr-message-list--center")
 
 
 @override_settings(

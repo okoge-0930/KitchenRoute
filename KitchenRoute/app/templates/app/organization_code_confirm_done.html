@@ -18,23 +18,44 @@
         組織コード
     </p>
 
-    <p style="
-        font-size: 22px;
-        margin: 0 0 12px;
-        line-height: 1.6;
-        font-weight: bold;
-        word-break: break-word;
-    " data-organization-code>
-        {{ organization_code }}
-    </p>
+    <div
+        class="kr-message-list"
+        data-copy-success-message
+        style="
+            display: none;
+            margin-bottom: 12px;
+        "
+    >
+        <div class="kr-message kr-message--success">
+            ✓ コピーしました。
+        </div>
+    </div>
 
-    <div style="text-align: center; margin-bottom: 12px;">
+    <div style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 28px;
+    ">
+        <p style="
+            font-size: 22px;
+            margin: 0;
+            line-height: 1.6;
+            font-weight: bold;
+            word-break: break-word;
+        " data-organization-code>
+            {{ organization_code }}
+        </p>
+
         <button
-            class="kr-button"
+            class="kr-button kr-button--secondary"
             type="button"
             data-copy-organization-code
             style="
-                background-color: #f2c94c;
+                background-color: #ddd;
+                color: #333;
                 border: 1px solid #999;
                 padding: 8px 20px;
                 min-width: 96px;
@@ -42,19 +63,6 @@
         >
             コピー
         </button>
-    </div>
-
-    <div
-        class="kr-message-list kr-message-list--center"
-        data-copy-success-message
-        style="
-            display: none;
-            margin-bottom: 20px;
-        "
-    >
-        <div class="kr-message kr-message--success">
-            コピーしました。
-        </div>
     </div>
 
     <p style="

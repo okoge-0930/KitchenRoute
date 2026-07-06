@@ -62,10 +62,6 @@
             text-align: left;
         }
 
-        .kr-message-list--center {
-            text-align: center;
-        }
-
         .kr-step-status-row {
             display: grid;
             grid-template-columns: minmax(0, 1fr) 44px;
@@ -403,6 +399,58 @@
     let confirmNoLabel = "いいえ";
     let confirmProcessingLabel = "処理中…";
 
+    function rememberSubmitButton(button) {
+        if (!button.dataset.originalDisabled) {
+            button.dataset.originalDisabled =
+                button.disabled ? "true" : "false";
+        }
+
+        if (
+            button.tagName === "INPUT"
+            && !button.dataset.originalValue
+        ) {
+            button.dataset.originalValue = button.value;
+        } else if (
+            button.tagName !== "INPUT"
+            && !button.dataset.originalText
+        ) {
+            button.dataset.originalText = button.textContent;
+        }
+    }
+
+    function resetSubmitButton(button) {
+        if (button.dataset.originalDisabled) {
+            button.disabled =
+                button.dataset.originalDisabled === "true";
+        } else {
+            button.disabled = false;
+        }
+
+        if (
+            button.tagName === "INPUT"
+            && button.dataset.originalValue
+        ) {
+            button.value = button.dataset.originalValue;
+        } else if (
+            button.tagName !== "INPUT"
+            && button.dataset.originalText
+        ) {
+            button.textContent = button.dataset.originalText;
+        }
+    }
+
+    function resetDisableOnSubmitForms() {
+        document.querySelectorAll("form[data-disable-on-submit]").forEach(function (form) {
+            form.dataset.submitting = "false";
+
+            form.querySelectorAll(
+                "button[type='submit'], input[type='submit']"
+            ).forEach(function (button) {
+                resetSubmitButton(button);
+            });
+        });
+    }
+
     function resetConfirmModalButtons() {
         const yesButton = document.getElementById("confirmYes");
         const noButton = document.getElementById("confirmNo");
@@ -430,6 +478,11 @@
     document.addEventListener("DOMContentLoaded", function () {
 
         document.querySelectorAll("form[data-disable-on-submit]").forEach(function (form) {
+            form.querySelectorAll(
+                "button[type='submit'], input[type='submit']"
+            ).forEach(function (button) {
+                rememberSubmitButton(button);
+            });
 
             form.addEventListener("submit", function (event) {
 
@@ -445,6 +498,7 @@
                 );
 
                 if (submitButton) {
+                    rememberSubmitButton(submitButton);
                     submitButton.disabled = true;
 
                     if (submitButton.tagName === "INPUT") {
@@ -582,6 +636,10 @@
 
         });
 
+    });
+
+    window.addEventListener("pageshow", function () {
+        resetDisableOnSubmitForms();
     });
 
 </script>
