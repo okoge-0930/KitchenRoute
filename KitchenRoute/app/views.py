@@ -923,8 +923,7 @@ class MarkStepPassedView(LoginRequiredMixin, TemplateView):
 
 class HomeView(View):
     def get(self, request, *args, **kwargs):
-        return redirect("https://kitchen-route.my.canva.site/")
-    
+        return redirect("login")
     
 class SkillManagementView(LoginRequiredMixin, TemplateView):
     template_name = "app/skill_management.html"
