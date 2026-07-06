@@ -706,16 +706,53 @@ class PasswordResetFlowTests(TestCase):
 
     @override_settings(EMAIL_BACKEND="app.tests.FailingEmailBackend")
     def test_password_reset_request_shows_send_failure(self):
-        response = self.client.post(
-            reverse("password_reset"),
-            {
-                "email": self.user.email,
-            },
-        )
+        with self.assertLogs("app.views", level="ERROR") as logs:
+            response = self.client.post(
+                reverse("password_reset"),
+                {
+                    "email": self.user.email,
+                },
+            )
 
         self.assertContains(
             response,
             "メール送信に失敗しました。時間をおいて再度お試しください。",
+        )
+        self.assertIn(
+            "Password reset email send failed.",
+            "\n".join(logs.output),
+        )
+
+    @override_settings(
+        EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+        EMAIL_HOST="",
+        EMAIL_HOST_USER="",
+        EMAIL_HOST_PASSWORD="",
+        DEFAULT_FROM_EMAIL="",
+        EMAIL_USE_TLS=True,
+        EMAIL_USE_SSL=True,
+    )
+    def test_password_reset_logs_invalid_smtp_configuration(self):
+        with self.assertLogs("app.views", level="ERROR") as logs:
+            response = self.client.post(
+                reverse("password_reset"),
+                {
+                    "email": self.user.email,
+                },
+            )
+
+        self.assertContains(
+            response,
+            "メール送信に失敗しました。時間をおいて再度お試しください。",
+        )
+        log_output = "\n".join(logs.output)
+        self.assertIn("Password reset email configuration is invalid", log_output)
+        self.assertIn("EMAIL_HOST is empty.", log_output)
+        self.assertIn("EMAIL_HOST_USER is empty.", log_output)
+        self.assertIn("EMAIL_HOST_PASSWORD is empty.", log_output)
+        self.assertIn(
+            "EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be true.",
+            log_output,
         )
 
     def test_password_reset_email_link_changes_password_and_allows_login(self):

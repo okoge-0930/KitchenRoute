@@ -26,9 +26,11 @@ from django.views import View
 import uuid
 import unicodedata
 from django.contrib import messages
+import logging
 
 
 NO_CHANGES_MESSAGE = "変更前と同じ内容です。"
+logger = logging.getLogger(__name__)
 
 
 def public_page_context(context=None):
@@ -176,6 +178,44 @@ def password_reset_user(uidb64):
         return None
 
     return User.objects.filter(pk=user_id).first()
+
+
+def password_reset_email_settings_summary():
+    return {
+        "EMAIL_BACKEND": settings.EMAIL_BACKEND,
+        "EMAIL_HOST": settings.EMAIL_HOST,
+        "EMAIL_PORT": settings.EMAIL_PORT,
+        "EMAIL_HOST_USER_SET": bool(settings.EMAIL_HOST_USER),
+        "EMAIL_HOST_PASSWORD_SET": bool(settings.EMAIL_HOST_PASSWORD),
+        "EMAIL_USE_TLS": settings.EMAIL_USE_TLS,
+        "EMAIL_USE_SSL": settings.EMAIL_USE_SSL,
+        "DEFAULT_FROM_EMAIL": settings.DEFAULT_FROM_EMAIL,
+        "PASSWORD_RESET_BASE_URL_SET": bool(settings.PASSWORD_RESET_BASE_URL),
+    }
+
+
+def password_reset_email_configuration_errors():
+    if settings.EMAIL_BACKEND != "django.core.mail.backends.smtp.EmailBackend":
+        return []
+
+    errors = []
+
+    if not settings.EMAIL_HOST:
+        errors.append("EMAIL_HOST is empty.")
+
+    if not settings.EMAIL_HOST_USER:
+        errors.append("EMAIL_HOST_USER is empty.")
+
+    if not settings.EMAIL_HOST_PASSWORD:
+        errors.append("EMAIL_HOST_PASSWORD is empty.")
+
+    if not settings.DEFAULT_FROM_EMAIL:
+        errors.append("DEFAULT_FROM_EMAIL is empty.")
+
+    if settings.EMAIL_USE_TLS and settings.EMAIL_USE_SSL:
+        errors.append("EMAIL_USE_TLS and EMAIL_USE_SSL cannot both be true.")
+
+    return errors
 
 
 class LoginView(TemplateView):
@@ -392,6 +432,30 @@ class PasswordResetRequestView(TemplateView):
                 "reset_url": reset_url,
             },
         )
+        configuration_errors = password_reset_email_configuration_errors()
+
+        if configuration_errors:
+            logger.error(
+                "Password reset email configuration is invalid: %s. "
+                "SMTP settings: %s",
+                configuration_errors,
+                password_reset_email_settings_summary(),
+            )
+
+            return render(
+                request,
+                self.template_name,
+                public_page_context(
+                    {
+                        "errors": [
+                            "メール送信に失敗しました。時間をおいて再度お試しください。",
+                        ],
+                        "form_values": {
+                            "email": email,
+                        },
+                    }
+                ),
+            )
 
         try:
             EmailMessage(
@@ -401,6 +465,11 @@ class PasswordResetRequestView(TemplateView):
                 [user.email],
             ).send(fail_silently=False)
         except Exception:
+            logger.exception(
+                "Password reset email send failed. SMTP settings: %s",
+                password_reset_email_settings_summary(),
+            )
+
             return render(
                 request,
                 self.template_name,
