@@ -897,11 +897,23 @@ class StepManagementView(LoginRequiredMixin, TemplateView):
         return context
     
 
-class RecipeCreateView(TemplateView):
+class RecipeCreateView(LoginRequiredMixin, TemplateView):
     template_name = "app/recipe_create.html"
 
     def post(self, request, *args, **kwargs):
         recipe_name = request.POST.get("name", "").strip()
+
+        if not recipe_name:
+            return render(
+                request,
+                self.template_name,
+                {
+                    "error": "レシピ名を入力してください。",
+                    "form_values": {
+                        "name": recipe_name,
+                    },
+                },
+            )
 
         if recipe_name:
             if recipe_name_exists_in_organization(
@@ -1018,7 +1030,7 @@ class RecipeUpdateView(LoginRequiredMixin, View):
         return redirect("skill_management")
         
 
-class StepCreateView(TemplateView):
+class StepCreateView(LoginRequiredMixin, TemplateView):
     template_name = "app/step_create.html"
 
     def get_context_data(self, **kwargs):
@@ -1084,7 +1096,7 @@ class StepCreateView(TemplateView):
         return redirect("step_management", recipe_id=recipe.id)
     
     
-class StepUpdateView(TemplateView):
+class StepUpdateView(LoginRequiredMixin, TemplateView):
     template_name = "app/step_update.html"
 
     def get_context_data(self, **kwargs):

@@ -258,6 +258,27 @@ class RecipeUpdateViewTests(TestCase):
             fetch_redirect_response=False,
         )
 
+    def test_no_change_cancel_returns_to_step_management(self):
+        redirect_to = reverse(
+            "step_management",
+            args=[self.recipe.id],
+        )
+
+        response = self.client.post(
+            reverse("recipe_update", args=[self.recipe.id]),
+            {
+                "name": "変更前レシピ",
+                "next": redirect_to,
+            },
+        )
+
+        self.assertContains(response, "変更前と同じ内容です。")
+        html = response.content.decode()
+        self.assertIn("location.href=", html)
+        self.assertIn("skill\\u002Dmanagement/recipes", html)
+        self.assertIn(str(self.recipe.id), html)
+        self.assertNotContains(response, "history.back()")
+
     def test_step_delete_redirects_to_step_list(self):
         response = self.client.post(
             reverse("step_delete", args=[self.step.id])
@@ -285,6 +306,148 @@ class RecipeUpdateViewTests(TestCase):
             reverse("step_management", args=[self.recipe.id]),
             fetch_redirect_response=False,
         )
+
+
+class LoginRequiredRedirectTests(TestCase):
+    def setUp(self):
+        self.organization = Organization.objects.create(
+            name="ログイン必須確認店舗",
+            organization_code="LOGINREQ001",
+        )
+        self.educator = User.objects.create_user(
+            username="login_required_educator",
+            password="password",
+            role=User.Role.EDUCATOR,
+            organization=self.organization,
+        )
+        self.trainee = User.objects.create_user(
+            username="login_required_trainee",
+            password="password",
+            role=User.Role.TRAINEE,
+            organization=self.organization,
+        )
+        self.recipe = Recipe.objects.create(
+            organization=self.organization,
+            name="ログイン必須レシピ",
+        )
+        self.step = Step.objects.create(
+            recipe=self.recipe,
+            name="ログイン必須工程",
+            order=1,
+        )
+
+    def assert_redirects_to_login(self, response):
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response["Location"].startswith(f"{reverse('login')}?next="),
+            response["Location"],
+        )
+
+    def test_login_required_pages_redirect_to_login_without_500(self):
+        get_urls = [
+            reverse("educator_home"),
+            reverse("trainee_home"),
+            reverse("admin_home"),
+            reverse("trainee_detail", args=[self.trainee.id]),
+            reverse("skill_management"),
+            reverse("step_management", args=[self.recipe.id]),
+            reverse("recipe_create"),
+            reverse("recipe_update", args=[self.recipe.id]),
+            reverse("step_create", args=[self.recipe.id]),
+            reverse("step_update", args=[self.step.id]),
+            reverse("step_delete", args=[self.step.id]),
+            reverse("recipe_delete", args=[self.recipe.id]),
+            reverse("trainee_task_detail", args=[self.recipe.id]),
+            reverse("my_progress"),
+            reverse("account"),
+            reverse("account_username_update"),
+            reverse("account_email_update"),
+            reverse("account_password_change"),
+        ]
+
+        for url in get_urls:
+            with self.subTest(url=url):
+                self.assert_redirects_to_login(
+                    self.client.get(url)
+                )
+
+    def test_login_required_posts_redirect_to_login_without_500(self):
+        post_requests = [
+            (
+                reverse(
+                    "mark_step_passed",
+                    args=[self.trainee.id, self.step.id],
+                ),
+                {},
+            ),
+            (
+                reverse("recipe_create"),
+                {
+                    "name": "未ログインレシピ",
+                },
+            ),
+            (
+                reverse("recipe_update", args=[self.recipe.id]),
+                {
+                    "name": "未ログイン更新",
+                },
+            ),
+            (
+                reverse("step_create", args=[self.recipe.id]),
+                {
+                    "order": "2",
+                    "name": "未ログイン工程",
+                },
+            ),
+            (
+                reverse("step_update", args=[self.step.id]),
+                {
+                    "order": "1",
+                    "name": "未ログイン工程更新",
+                },
+            ),
+            (
+                reverse("step_delete", args=[self.step.id]),
+                {},
+            ),
+            (
+                reverse("recipe_delete", args=[self.recipe.id]),
+                {},
+            ),
+            (
+                reverse(
+                    "change_user_role",
+                    args=[self.trainee.id, User.Role.EDUCATOR],
+                ),
+                {},
+            ),
+            (
+                reverse("account_username_update"),
+                {
+                    "username": "未ログイン名前",
+                },
+            ),
+            (
+                reverse("account_email_update"),
+                {
+                    "email": "nologin@example.com",
+                },
+            ),
+            (
+                reverse("account_password_change"),
+                {
+                    "old_password": "password",
+                    "new_password1": "abc12345",
+                    "new_password2": "abc12345",
+                },
+            ),
+        ]
+
+        for url, data in post_requests:
+            with self.subTest(url=url):
+                self.assert_redirects_to_login(
+                    self.client.post(url, data)
+                )
 
 
 class UserSearchViewTests(TestCase):
@@ -919,6 +1082,29 @@ class RecipeNameValidationTests(TestCase):
                 name="マフィン",
             ).count(),
             1,
+        )
+
+    def test_recipe_create_requires_name_without_redirect(self):
+        response = self.client.post(
+            reverse("recipe_create"),
+            {
+                "name": "   ",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "レシピ名を入力してください。")
+        assert_message_between_title_and_form(
+            self,
+            response,
+            "レシピ登録",
+            "レシピ名を入力してください。",
+        )
+        self.assertFalse(
+            Recipe.objects.filter(
+                organization=self.organization,
+                name="",
+            ).exists()
         )
 
     def test_recipe_create_treats_english_spelling_as_different_name(self):

@@ -72,7 +72,11 @@
             <button
                 class="kr-button kr-button--cancel"
                 type="button"
-                onclick="history.back()"
+                {% if redirect_to %}
+                    onclick="location.href='{{ redirect_to|escapejs }}'"
+                {% else %}
+                    onclick="location.href='{% url 'step_management' recipe.id %}'"
+                {% endif %}
                 style="
                     background-color: #ddd;
                     color: #333;
