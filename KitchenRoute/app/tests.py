@@ -1,4 +1,5 @@
 import re
+from django.test import Client
 from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
@@ -702,6 +703,29 @@ class PasswordResetFlowTests(TestCase):
         self.assertContains(
             missing_response,
             "入力されたメールアドレスは登録されていません。",
+        )
+
+    def test_password_reset_form_sets_and_submits_csrf_cookie(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        get_response = csrf_client.get(reverse("password_reset"))
+
+        self.assertEqual(get_response.status_code, 200)
+        self.assertIn("csrftoken", get_response.cookies)
+        self.assertContains(get_response, 'name="csrfmiddlewaretoken"')
+
+        csrf_token = get_response.cookies["csrftoken"].value
+        post_response = csrf_client.post(
+            reverse("password_reset"),
+            {
+                "email": self.user.email,
+                "csrfmiddlewaretoken": csrf_token,
+            },
+        )
+
+        self.assertRedirects(
+            post_response,
+            reverse("password_reset_done"),
+            fetch_redirect_response=False,
         )
 
     @override_settings(EMAIL_BACKEND="app.tests.FailingEmailBackend")

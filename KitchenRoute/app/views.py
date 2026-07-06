@@ -9,12 +9,14 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.crypto import constant_time_compare
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import (
     base36_to_int,
     urlsafe_base64_decode,
     urlsafe_base64_encode,
 )
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 from .models import Progress, Recipe, Step, User, Organization
 from django.utils import timezone
@@ -380,6 +382,7 @@ class OrganizationCodeConfirmDoneView(TemplateView):
         return public_page_context(context)
     
 
+@method_decorator(ensure_csrf_cookie, name="dispatch")
 class PasswordResetRequestView(TemplateView):
     template_name = "app/password_reset.html"
 
