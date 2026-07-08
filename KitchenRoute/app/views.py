@@ -25,6 +25,10 @@ def public_page_context(context=None):
     return context
 
 
+def portfolio_top(request):
+    return render(request, "portfolio/index.html")
+
+
 def password_validation_errors(password, password_confirm):
     password = password or ""
     password_confirm = password_confirm or ""
@@ -587,6 +591,16 @@ class MarkStepPassedView(LoginRequiredMixin, TemplateView):
 
 class HomeView(View):
     def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            if request.user.role == User.Role.TRAINEE:
+                return redirect("trainee_home")
+
+            if request.user.role == User.Role.EDUCATOR:
+                return redirect("educator_home")
+
+            if request.user.role == User.Role.ADMIN:
+                return redirect("admin_home")
+
         return redirect("login")
     
 class SkillManagementView(LoginRequiredMixin, TemplateView):

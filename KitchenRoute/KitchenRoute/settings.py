@@ -126,7 +126,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 AUTH_USER_MODEL = "app.User"
 
@@ -138,9 +139,9 @@ SILENCED_SYSTEM_CHECKS = [
     "auth.W004",
 ]
 
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/app/"
 
-LOGIN_URL = "/login/"
+LOGIN_URL = "/app/login/"
 
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND",

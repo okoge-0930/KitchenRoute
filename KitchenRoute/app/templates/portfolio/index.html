@@ -1,0 +1,101 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KitchenRoute ポートフォリオ</title>
+    <link rel="stylesheet" href="{% static 'portfolio/css/style.css' %}">
+</head>
+<body>
+    <header class="portfolio-hero">
+        <nav class="portfolio-nav" aria-label="ポートフォリオナビゲーション">
+            <a class="portfolio-logo" href="{% url 'portfolio_top' %}">
+                KitchenRoute
+            </a>
+            <a class="portfolio-nav-link" href="{% url 'home' %}">
+                このアプリにアクセス
+            </a>
+        </nav>
+
+        <div class="portfolio-hero-inner">
+            <div class="portfolio-hero-copy">
+                <p class="portfolio-kicker">Kitchen Training Management App</p>
+                <h1>KitchenRoute</h1>
+                <p class="portfolio-lead">
+                    新人スタッフの調理工程習得を、教育者と管理者が確認しながら進められる
+                    キッチン業務向けトレーニング管理アプリです。
+                </p>
+                <div class="portfolio-actions">
+                    <a class="portfolio-button portfolio-button-primary" href="{% url 'home' %}">
+                        このアプリにアクセス
+                    </a>
+                    <a class="portfolio-button portfolio-button-secondary" href="{% static 'portfolio/documents/plan.pdf' %}">
+                        企画書を見る
+                    </a>
+                </div>
+            </div>
+
+            <figure class="portfolio-screenshot">
+                <img
+                    src="{% static 'portfolio/images/kitchenroute-screenshot.jpg' %}"
+                    alt="KitchenRouteの画面スクリーンショット"
+                >
+            </figure>
+        </div>
+    </header>
+
+    <main>
+        <section class="portfolio-section" aria-labelledby="overview-heading">
+            <div class="portfolio-section-inner portfolio-grid">
+                <div>
+                    <p class="portfolio-kicker">Overview</p>
+                    <h2 id="overview-heading">現場教育の進捗を見える化</h2>
+                </div>
+                <div class="portfolio-text">
+                    <p>
+                        レシピごとに工程を登録し、新人スタッフがどこまで習得できているかを
+                        教育者が記録できます。管理者はスタッフごとの進捗を確認し、
+                        教育状況を把握できます。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="portfolio-section portfolio-section-muted" aria-labelledby="features-heading">
+            <div class="portfolio-section-inner">
+                <p class="portfolio-kicker">Features</p>
+                <h2 id="features-heading">主な機能</h2>
+                <div class="portfolio-feature-list">
+                    <article class="portfolio-card">
+                        <h3>ロール別ホーム</h3>
+                        <p>新人、教育者、管理者ごとに必要な画面へ誘導します。</p>
+                    </article>
+                    <article class="portfolio-card">
+                        <h3>工程管理</h3>
+                        <p>レシピと工程を登録し、現場の教育項目として整理できます。</p>
+                    </article>
+                    <article class="portfolio-card">
+                        <h3>進捗記録</h3>
+                        <p>合格済み工程を記録し、スタッフごとの習得状況を確認できます。</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="portfolio-section" aria-labelledby="documents-heading">
+            <div class="portfolio-section-inner">
+                <p class="portfolio-kicker">Documents</p>
+                <h2 id="documents-heading">設計資料</h2>
+                <div class="portfolio-document-list">
+                    <a href="{% static 'portfolio/documents/plan.pdf' %}">企画書</a>
+                    <a href="{% static 'portfolio/documents/screen.pdf' %}">画面設計</a>
+                    <a href="{% static 'portfolio/documents/flow.pdf' %}">画面遷移図</a>
+                    <a href="{% static 'portfolio/documents/er.pdf' %}">ER図</a>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
